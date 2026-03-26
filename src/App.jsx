@@ -226,67 +226,219 @@ const callJSON = async (messages, extraSystem = "") => {
   try { const m = t.replace(/```json|```/g, "").trim().match(/\{[\s\S]*\}|\[[\s\S]*\]/); return m ? JSON.parse(m[0]) : null; } catch { return null; }
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// DATA
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const ETHNICITIES = [
-  { id: "west-african", label: "West African", emoji: "🌍", staples: ["plantain","yam","egusi","black-eyed peas","tilapia","moringa","palm oil"] },
-  { id: "east-asian", label: "East Asian", emoji: "🍜", staples: ["brown rice","tofu","edamame","bok choy","miso","salmon","shiitake"] },
-  { id: "south-asian", label: "South Asian", emoji: "🍛", staples: ["lentils","chickpeas","turmeric","paneer","basmati rice","fenugreek"] },
-  { id: "mediterranean", label: "Mediterranean", emoji: "🫒", staples: ["olive oil","feta","hummus","quinoa","sardines","eggplant","pomegranate"] },
-  { id: "latin-american", label: "Latin American", emoji: "🌮", staples: ["black beans","corn","avocado","sweet potato","cilantro","lean beef"] },
-  { id: "middle-eastern", label: "Middle Eastern", emoji: "🧆", staples: ["tahini","za'atar","bulgur","lamb","labneh","sumac","freekeh"] },
-  { id: "caribbean", label: "Caribbean", emoji: "🌴", staples: ["coconut","callaloo","jerk seasoning","breadfruit","saltfish","ackee"] },
-  { id: "eastern-european", label: "Eastern European", emoji: "🥗", staples: ["buckwheat","kefir","beets","rye bread","herring","sauerkraut"] },
-];
-
-const GOALS = ["Weight Loss", "Muscle Gain", "Maintenance", "Athletic Performance", "Heart Health"];
-const G = "#00e5a0", A = "#ffb84d", B = "#4d9fff", R = "#ff6b6b", P = "#c77dff";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// UI COMPONENTS
+// FOOD PHOTO LIBRARY — curated Unsplash food images
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const FOOD_PHOTOS = {
+  hero: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=1400&q=85",
+  "west-african": "https://images.unsplash.com/photo-1604329760661-e71dc83f8f26?w=800&q=80",
+  "east-asian": "https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=800&q=80",
+  "south-asian": "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&q=80",
+  "mediterranean": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80",
+  "latin-american": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&q=80",
+  "middle-eastern": "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=800&q=80",
+  "caribbean": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80",
+  "eastern-european": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
+  breakfast: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&q=80",
+  lunch: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80",
+  dinner: "https://images.unsplash.com/photo-1559847844-5315695dadae?w=600&q=80",
+  snack: "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=600&q=80",
+  deals: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80",
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DESIGN TOKENS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const WARM = "#ffb74d";
+const WARM2 = "#ff8a65";
+const SAGE = "#81c784";
+const CREAM = "#f5f0e8";
+const SKY = "#64b5f6";
+const ROSE = "#f48fb1";
+const DARK = "#0d0a07";
+const G = WARM; const A = WARM2; const B = SKY; const R = "#f44336"; const P = ROSE;
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// GLOBAL CSS — Premium food editorial aesthetic
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const css = `
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
 @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-8px)} }
-@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-@keyframes slideUp { from{opacity:0;transform:translateY(36px)} to{opacity:1;transform:translateY(0)} }
-@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 ${G}55} 60%{box-shadow:0 0 0 14px transparent} }
+@keyframes slideUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,183,77,.5)} 60%{box-shadow:0 0 0 18px transparent} }
+@keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
+@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes scaleIn { from{opacity:0;transform:scale(.93)} to{opacity:1;transform:scale(1)} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
 * { box-sizing:border-box; margin:0; padding:0; }
-body { background:#07080f; color:#eef0f5; font-family:'DM Sans',sans-serif; }
-::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
-input,textarea{outline:none;} a{color:${B};}
+html { scroll-behavior:smooth; }
+body {
+  background: ${DARK};
+  color: ${CREAM};
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(255,183,77,.25); border-radius:10px; }
+
+input, textarea { font-family:'Plus Jakarta Sans',sans-serif; }
+
+.fade-up { animation:fadeUp .55s cubic-bezier(.22,1,.36,1) forwards; }
+.scale-in { animation:scaleIn .4s cubic-bezier(.22,1,.36,1) forwards; }
+.float { animation:float 3s ease-in-out infinite; }
+
+/* Shimmer gold text */
+.shimmer {
+  background: linear-gradient(90deg,${WARM},${WARM2},${WARM},#ffd54f,${WARM});
+  background-size:300% auto;
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation:shimmer 5s linear infinite;
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255,255,255,.045);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,.1);
+}
+
+/* Hover lift */
+.lift { transition:transform .3s ease, box-shadow .3s ease; cursor:pointer; }
+.lift:hover { transform:translateY(-4px); box-shadow:0 24px 48px rgba(0,0,0,.5); }
+
+/* Tab active glow */
+.tab-active {
+  background: linear-gradient(135deg, ${WARM}, ${WARM2}) !important;
+  color: ${DARK} !important;
+  box-shadow: 0 4px 20px rgba(255,183,77,.35);
+}
 `;
 
-function Pill({ children, active, onClick, color = G }) {
-  return <button onClick={onClick} style={{ padding: "8px 16px", borderRadius: 30, border: `1px solid ${active ? color : "rgba(255,255,255,.1)"}`, background: active ? `${color}18` : "transparent", color: active ? color : "rgba(255,255,255,.5)", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: active ? 600 : 400, cursor: "pointer", transition: "all .2s", whiteSpace: "nowrap" }}>{children}</button>;
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// UI ATOMS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function Pill({ children, active, onClick, color = WARM }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: "9px 20px", borderRadius: 50,
+      border: `1.5px solid ${active ? color : "rgba(255,240,220,.14)"}`,
+      background: active ? `${color}20` : "rgba(255,255,255,.03)",
+      color: active ? color : "rgba(245,240,232,.4)",
+      fontFamily: "'Plus Jakarta Sans',sans-serif",
+      fontSize: 13, fontWeight: active ? 700 : 400,
+      cursor: "pointer", whiteSpace: "nowrap",
+      transition: "all .25s cubic-bezier(.22,1,.36,1)",
+      backdropFilter: "blur(8px)",
+      boxShadow: active ? `0 0 20px ${color}20` : "none",
+    }}>{children}</button>
+  );
 }
 
-function Card({ children, style = {}, glow }) {
-  return <div style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 18, padding: 20, boxShadow: glow ? `0 0 28px ${glow}20` : "none", ...style }}>{children}</div>;
+function Card({ children, style = {}, glow, image, imageHeight = 150 }) {
+  return (
+    <div style={{
+      background: "rgba(255,255,255,.04)",
+      border: "1px solid rgba(255,255,255,.08)",
+      borderRadius: 22,
+      overflow: "hidden",
+      backdropFilter: "blur(20px)",
+      boxShadow: glow
+        ? `0 0 40px ${glow}30, 0 8px 32px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08)`
+        : "0 8px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06)",
+      ...style,
+    }}>
+      {image && (
+        <div style={{ position: "relative", height: imageHeight, overflow: "hidden", flexShrink: 0 }}>
+          <img src={image} alt=""
+            style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform .7s ease", display: "block" }}
+            onMouseEnter={e => e.currentTarget.style.transform = "scale(1.06)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+          />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(13,10,7,.05) 0%, rgba(13,10,7,.75) 100%)" }} />
+        </div>
+      )}
+      <div style={{ padding: image ? "14px 18px 18px" : "18px 20px" }}>{children}</div>
+    </div>
+  );
 }
 
-function Tag({ children, color = G }) {
-  return <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", background: `${color}18`, color, border: `1px solid ${color}30`, padding: "3px 9px", borderRadius: 20 }}>{children}</span>;
+function Tag({ children, color = WARM }) {
+  return (
+    <span style={{
+      fontSize: 10, fontWeight: 700, letterSpacing: 1.5,
+      textTransform: "uppercase",
+      background: `${color}18`, color,
+      border: `1px solid ${color}35`,
+      padding: "3px 10px", borderRadius: 20,
+    }}>{children}</span>
+  );
 }
 
-function Spinner({ label = "Processing…" }) {
-  return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, padding: "40px 0" }}><div style={{ display: "flex", gap: 6 }}>{[0, 1, 2].map(i => <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: G, animation: `bounce 1.2s ${i * .2}s infinite ease-in-out` }} />)}</div><div style={{ fontSize: 11, color: "rgba(255,255,255,.4)", letterSpacing: 2, textTransform: "uppercase" }}>{label}</div></div>;
+function Spinner({ label = "Crafting your plan…" }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, padding: "70px 20px" }}>
+      <div style={{ position: "relative", width: 72, height: 72 }}>
+        <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: `2px solid rgba(255,183,77,.15)` }} />
+        <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid transparent", borderTopColor: WARM, animation: "spin 1s linear infinite" }} />
+        <div style={{ position: "absolute", inset: 6, borderRadius: "50%", background: `rgba(255,183,77,.08)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>🍽️</div>
+      </div>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 16, fontWeight: 600, color: CREAM, marginBottom: 6 }}>{label}</div>
+        <div style={{ fontSize: 12, color: "rgba(245,240,232,.3)", letterSpacing: .5 }}>Personalising to your heritage & goals</div>
+      </div>
+    </div>
+  );
 }
 
 function SafetyBanner({ warnings = [] }) {
   if (!warnings.length) return null;
-  return <div style={{ marginBottom: 16 }}>{warnings.map((w, i) => <div key={i} style={{ display: "flex", gap: 10, padding: "11px 14px", borderRadius: 12, marginBottom: 8, background: w.level === "error" ? "rgba(255,107,107,.08)" : w.level === "warning" ? "rgba(255,184,77,.07)" : "rgba(77,159,255,.07)", border: `1px solid ${w.level === "error" ? R + "35" : w.level === "warning" ? A + "35" : B + "35"}` }}><span style={{ fontSize: 15, flexShrink: 0 }}>{w.level === "error" ? "🚨" : "⚠️"}</span><span style={{ fontSize: 12, color: "rgba(255,255,255,.75)", lineHeight: 1.6 }}>{w.msg}</span></div>)}</div>;
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {warnings.map((w, i) => (
+        <div key={i} style={{
+          display: "flex", gap: 12, padding: "12px 16px", borderRadius: 14, marginBottom: 8,
+          background: w.level === "error" ? "rgba(244,67,54,.08)" : w.level === "warning" ? "rgba(255,183,77,.07)" : "rgba(100,181,246,.07)",
+          border: `1px solid ${w.level === "error" ? "rgba(244,67,54,.3)" : w.level === "warning" ? "rgba(255,183,77,.3)" : "rgba(100,181,246,.3)"}`,
+          backdropFilter: "blur(12px)",
+        }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>{w.level === "error" ? "🚨" : "⚠️"}</span>
+          <span style={{ fontSize: 12, color: "rgba(245,240,232,.8)", lineHeight: 1.6 }}>{w.msg}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function MedDisclaimer({ compact }) {
-  if (compact) return <div style={{ fontSize: 11, color: "rgba(255,255,255,.28)", textAlign: "center", padding: "8px 12px", lineHeight: 1.5 }}>⚕️ General wellness guidance only — not medical advice. Consult a qualified healthcare professional before making dietary changes.</div>;
-  return <div style={{ background: "rgba(77,159,255,.05)", border: "1px solid rgba(77,159,255,.18)", borderRadius: 14, padding: "15px 18px", marginBottom: 18 }}><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: B, marginBottom: 8 }}>⚕️ Important Health Notice</div><div style={{ fontSize: 12, color: "rgba(255,255,255,.6)", lineHeight: 1.75 }}>FuelPlan Pro provides <strong style={{ color: "rgba(255,255,255,.85)" }}>general wellness guidance only</strong> and is not a medical service, medical device, or substitute for professional healthcare. Always consult a qualified physician or registered dietitian. <span style={{ color: B, fontWeight: 600 }}>Classified as a General Wellness Application under applicable digital health regulations.</span></div></div>;
+  if (compact) return (
+    <div style={{ fontSize: 11, color: "rgba(245,240,232,.28)", textAlign: "center", padding: "10px 14px", lineHeight: 1.6 }}>
+      ⚕️ General wellness guidance only — not medical advice.
+    </div>
+  );
+  return (
+    <div style={{
+      background: "rgba(100,181,246,.05)", border: "1px solid rgba(100,181,246,.18)",
+      borderRadius: 16, padding: "13px 18px", marginBottom: 18, backdropFilter: "blur(12px)",
+    }}>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: SKY, marginBottom: 6 }}>⚕️ Health Notice</div>
+      <div style={{ fontSize: 12, color: "rgba(245,240,232,.5)", lineHeight: 1.75 }}>
+        FuelPlan Pro provides <strong style={{ color: "rgba(245,240,232,.85)" }}>general wellness guidance only</strong> — not medical advice. Always consult a qualified physician or dietitian before making significant dietary changes.
+      </div>
+    </div>
+  );
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CONSENT SCREEN
+// CONSENT SCREEN — premium with food hero background
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function ConsentScreen({ onAccept, onDecline }) {
   const [tab, setTab] = useState("overview");
@@ -294,77 +446,117 @@ function ConsentScreen({ onAccept, onDecline }) {
   const allChecked = Object.values(checked).every(Boolean);
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "#07080f", zIndex: 200, display: "flex", flexDirection: "column", animation: "fadeIn .3s" }}>
+    <div style={{ position: "fixed", inset: 0, background: DARK, zIndex: 200, display: "flex", flexDirection: "column", animation: "fadeIn .4s" }}>
       <style>{css}</style>
-      <div style={{ padding: "20px 20px 0", borderBottom: "1px solid rgba(255,255,255,.07)", background: "rgba(7,8,15,.98)", position: "sticky", top: 0, zIndex: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: `${G}18`, border: `1px solid ${G}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>⚡</div>
-          <div>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 18, fontWeight: 800 }}>Before You Begin</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)" }}>Please review and accept our terms — v{LEGAL.TOS_VERSION}</div>
+      {/* Hero food photo header */}
+      <div style={{ position: "relative", height: 160, flexShrink: 0, overflow: "hidden" }}>
+        <img src={FOOD_PHOTOS.hero} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(13,10,7,.3) 0%, rgba(13,10,7,.95) 100%)" }} />
+        <div style={{ position: "absolute", bottom: 16, left: 20, right: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: `${WARM}20`, border: `1px solid ${WARM}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🍽️</div>
+            <div>
+              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 700, color: CREAM }}>Before You Begin</div>
+              <div style={{ fontSize: 11, color: "rgba(245,240,232,.45)" }}>Review & accept our terms — v{LEGAL.TOS_VERSION}</div>
+            </div>
           </div>
-        </div>
-        <div style={{ display: "flex", gap: 4, paddingBottom: 1 }}>
-          {[["overview", "Overview"], ["tos", "Terms"], ["privacy", "Privacy"], ["legal", "Legal"]].map(([id, label]) => (
-            <button key={id} onClick={() => setTab(id)} style={{ flex: 1, padding: "8px 4px", border: "none", background: tab === id ? G : "transparent", color: tab === id ? "#07080f" : "rgba(255,255,255,.4)", fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 700, cursor: "pointer", borderRadius: "8px 8px 0 0", transition: "all .2s" }}>{label}</button>
-          ))}
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
+      {/* Tab navigation */}
+      <div style={{ display: "flex", gap: 2, padding: "10px 16px 0", background: "rgba(13,10,7,.98)", borderBottom: "1px solid rgba(255,255,255,.07)" }}>
+        {[["overview", "Overview"], ["tos", "Terms"], ["privacy", "Privacy"], ["legal", "Legal"]].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)} style={{
+            flex: 1, padding: "9px 4px", border: "none",
+            background: tab === id ? `${WARM}18` : "transparent",
+            color: tab === id ? WARM : "rgba(245,240,232,.35)",
+            fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700,
+            cursor: "pointer", borderRadius: "8px 8px 0 0", transition: "all .2s",
+            borderBottom: tab === id ? `2px solid ${WARM}` : "2px solid transparent",
+          }}>{label}</button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "18px 16px" }}>
         {tab === "overview" && (
           <div>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Your Rights & Our Commitments</div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,.5)", marginBottom: 20, lineHeight: 1.6 }}>FuelPlan Pro is built on privacy by design and legal compliance.</div>
+            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, marginBottom: 6, color: CREAM }}>Your Rights & Our Commitments</div>
+            <div style={{ fontSize: 13, color: "rgba(245,240,232,.45)", marginBottom: 20, lineHeight: 1.6 }}>Built on privacy by design.</div>
             {[
-              [G, "🔒", "Data stays on your device", "All profile data, meal plans, and preferences are stored only in your browser. We have no servers holding your personal information."],
-              [G, "🏥", "Health reports are session-only", "Uploaded health documents are processed temporarily and discarded immediately. They are never stored or shared."],
-              [A, "⚕️", "Not a medical service", "This app provides general wellness guidance. It cannot diagnose, treat, or replace your doctor or registered dietitian."],
-              [B, "🤖", "AI-generated content", "Meal plans and recommendations are AI-generated and may contain errors. Always verify critical health information with a professional."],
-              [P, "🌍", "Multi-jurisdiction compliance", "Designed to comply with GDPR (EU), CCPA (California), PIPEDA (Canada), and UK GDPR standards."],
+              [SAGE, "🔒", "Data stays on your device", "All profile data is stored only in your browser. We have no servers holding your information."],
+              [SAGE, "🏥", "Health reports are session-only", "Uploaded documents are processed in-session and immediately discarded. Never stored."],
+              [WARM, "⚕️", "Not a medical service", "General wellness guidance only — cannot diagnose, treat, or replace your healthcare provider."],
+              [SKY, "🤖", "AI-generated content", "Meal plans may contain errors. Always verify critical health info with a professional."],
+              [ROSE, "🌍", "Multi-jurisdiction compliance", "GDPR (EU), CCPA (California), PIPEDA (Canada), and UK GDPR compliant."],
             ].map(([color, icon, title, desc]) => (
-              <div key={title} style={{ display: "flex", gap: 14, marginBottom: 14, padding: "14px 16px", background: "rgba(255,255,255,.03)", border: `1px solid ${color}18`, borderRadius: 14 }}>
+              <div key={title} style={{ display: "flex", gap: 14, marginBottom: 12, padding: "14px 16px", background: `${color}08`, border: `1px solid ${color}20`, borderRadius: 16, backdropFilter: "blur(8px)" }}>
                 <span style={{ fontSize: 20, flexShrink: 0 }}>{icon}</span>
-                <div><div style={{ fontWeight: 600, fontSize: 14, color, marginBottom: 4 }}>{title}</div><div style={{ fontSize: 12, color: "rgba(255,255,255,.5)", lineHeight: 1.6 }}>{desc}</div></div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13, color, marginBottom: 3 }}>{title}</div>
+                  <div style={{ fontSize: 12, color: "rgba(245,240,232,.45)", lineHeight: 1.6 }}>{desc}</div>
+                </div>
               </div>
             ))}
           </div>
         )}
-        {tab === "tos" && <div style={{ background: "rgba(255,255,255,.02)", borderRadius: 14, padding: "18px", border: "1px solid rgba(255,255,255,.07)" }}><pre style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,.65)", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{LEGAL.TERMS_OF_SERVICE}</pre></div>}
-        {tab === "privacy" && <div style={{ background: "rgba(255,255,255,.02)", borderRadius: 14, padding: "18px", border: "1px solid rgba(255,255,255,.07)" }}><pre style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,.65)", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{LEGAL.PRIVACY_POLICY}</pre></div>}
+        {tab === "tos" && (
+          <div style={{ background: "rgba(255,255,255,.02)", borderRadius: 16, padding: "18px", border: "1px solid rgba(255,255,255,.07)" }}>
+            <pre style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, color: "rgba(245,240,232,.6)", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{LEGAL.TERMS_OF_SERVICE}</pre>
+          </div>
+        )}
+        {tab === "privacy" && (
+          <div style={{ background: "rgba(255,255,255,.02)", borderRadius: 16, padding: "18px", border: "1px solid rgba(255,255,255,.07)" }}>
+            <pre style={{ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, color: "rgba(245,240,232,.6)", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{LEGAL.PRIVACY_POLICY}</pre>
+          </div>
+        )}
         {tab === "legal" && (
           <div>
             <Card style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,.35)", marginBottom: 12 }}>App Classification</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: G, marginBottom: 8 }}>{LEGAL.CLASSIFICATION}</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,.5)", lineHeight: 1.7 }}>This app does not meet the definition of a Software as a Medical Device (SaMD) under FDA guidance. It provides only general wellness functions, not clinical decision support.</div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(245,240,232,.3)", marginBottom: 10 }}>Classification</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: SAGE, marginBottom: 6 }}>{LEGAL.CLASSIFICATION}</div>
+              <div style={{ fontSize: 12, color: "rgba(245,240,232,.45)", lineHeight: 1.7 }}>Not a Software as a Medical Device (SaMD). Provides only general wellness, not clinical decision support.</div>
             </Card>
             <Card>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,.35)", marginBottom: 10 }}>Regulatory Compliance</div>
-              {LEGAL.JURISDICTIONS.map(j => <div key={j} style={{ fontSize: 13, color: "rgba(255,255,255,.6)", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,.05)" }}>✓ {j}</div>)}
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(245,240,232,.3)", marginBottom: 10 }}>Regulatory Coverage</div>
+              {LEGAL.JURISDICTIONS.map(j => <div key={j} style={{ fontSize: 12, color: "rgba(245,240,232,.55)", padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,.05)" }}>✓ {j}</div>)}
             </Card>
           </div>
         )}
       </div>
 
-      <div style={{ padding: "16px 20px", borderTop: "1px solid rgba(255,255,255,.07)", background: "rgba(7,8,15,.98)" }}>
+      {/* Checkboxes + CTA */}
+      <div style={{ padding: "14px 16px 20px", borderTop: "1px solid rgba(255,255,255,.07)", background: "rgba(13,10,7,.98)", backdropFilter: "blur(20px)" }}>
         {[
           ["age", `I confirm I am ${LEGAL.MIN_AGE} years of age or older`],
           ["tos", "I have read and accept the Terms of Service"],
           ["privacy", "I have read and accept the Privacy Policy"],
-          ["medical", "I understand this app provides general wellness guidance only, not medical advice"],
+          ["medical", "I understand this is general wellness guidance only, not medical advice"],
         ].map(([key, label]) => (
           <div key={key} onClick={() => setChecked(c => ({ ...c, [key]: !c[key] }))} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10, cursor: "pointer" }}>
-            <div style={{ width: 20, height: 20, borderRadius: 5, border: `2px solid ${checked[key] ? G : "rgba(255,255,255,.2)"}`, background: checked[key] ? G : "transparent", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1, transition: "all .2s" }}>
-              {checked[key] && <span style={{ color: "#07080f", fontSize: 11, fontWeight: 800 }}>✓</span>}
+            <div style={{
+              width: 20, height: 20, borderRadius: 6, flexShrink: 0, marginTop: 1,
+              border: `2px solid ${checked[key] ? WARM : "rgba(245,240,232,.2)"}`,
+              background: checked[key] ? `linear-gradient(135deg, ${WARM}, ${WARM2})` : "transparent",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "all .25s", boxShadow: checked[key] ? `0 0 12px ${WARM}40` : "none",
+            }}>
+              {checked[key] && <span style={{ color: DARK, fontSize: 11, fontWeight: 900 }}>✓</span>}
             </div>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,.65)", lineHeight: 1.5 }}>{label}</span>
+            <span style={{ fontSize: 12, color: "rgba(245,240,232,.6)", lineHeight: 1.5 }}>{label}</span>
           </div>
         ))}
-        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-          <button onClick={onDecline} style={{ flex: 1, padding: "13px", borderRadius: 12, border: "1px solid rgba(255,255,255,.1)", background: "transparent", color: "rgba(255,255,255,.5)", fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Decline</button>
-          <button onClick={() => allChecked && onAccept()} style={{ flex: 2, padding: "13px", borderRadius: 12, border: "none", background: allChecked ? G : "rgba(255,255,255,.08)", color: allChecked ? "#07080f" : "rgba(255,255,255,.25)", fontFamily: "'Syne',sans-serif", fontSize: 15, fontWeight: 700, cursor: allChecked ? "pointer" : "not-allowed", transition: "all .2s" }}>
-            {allChecked ? "I Agree — Continue →" : "Check all boxes to continue"}
+        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+          <button onClick={onDecline} style={{ flex: 1, padding: "13px", borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "transparent", color: "rgba(245,240,232,.4)", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Decline</button>
+          <button onClick={() => allChecked && onAccept()} style={{
+            flex: 2, padding: "13px", borderRadius: 14, border: "none",
+            background: allChecked ? `linear-gradient(135deg, ${WARM}, ${WARM2})` : "rgba(255,255,255,.06)",
+            color: allChecked ? DARK : "rgba(245,240,232,.2)",
+            fontFamily: "'Playfair Display',serif", fontSize: 15, fontWeight: 700,
+            cursor: allChecked ? "pointer" : "not-allowed", transition: "all .3s",
+            boxShadow: allChecked ? `0 8px 30px ${WARM}40` : "none",
+          }}>
+            {allChecked ? "I Agree — Let's Begin →" : "Check all boxes to continue"}
           </button>
         </div>
         <MedDisclaimer compact />
@@ -383,78 +575,71 @@ function CompliancePanel({ onDeleteData }) {
   const [activeSection, setSection] = useState("rights");
 
   return (
-    <div style={{ padding: "18px 14px", maxWidth: 640, margin: "0 auto" }}>
-      <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Privacy & Compliance</div>
-      <div style={{ fontSize: 13, color: "rgba(255,255,255,.4)", marginBottom: 20 }}>Full transparency into what we store and your legal rights</div>
-      <div style={{ display: "flex", gap: 4, marginBottom: 20, overflowX: "auto" }}>
-        {[["rights", "Your Rights"], ["inventory", "Data Inventory"], ["audit", "Audit Log"], ["analytics", "Analytics"]].map(([id, label]) => (
-          <button key={id} onClick={() => setSection(id)} style={{ flexShrink: 0, padding: "8px 14px", borderRadius: 8, border: "none", background: activeSection === id ? G : "rgba(255,255,255,.05)", color: activeSection === id ? "#07080f" : "rgba(255,255,255,.45)", fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{label}</button>
+    <div style={{ padding: "18px 4px" }}>
+      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 700, marginBottom: 4, color: CREAM }}>Privacy & Compliance</div>
+      <div style={{ fontSize: 13, color: "rgba(245,240,232,.35)", marginBottom: 20 }}>Full transparency into what we store</div>
+      <div style={{ display: "flex", gap: 6, marginBottom: 20, overflowX: "auto", paddingBottom: 4 }}>
+        {[["rights", "Your Rights"], ["inventory", "Data"], ["audit", "Audit Log"], ["analytics", "Analytics"]].map(([id, label]) => (
+          <button key={id} onClick={() => setSection(id)} style={{
+            flexShrink: 0, padding: "8px 16px", borderRadius: 20, border: `1px solid ${activeSection === id ? WARM : "rgba(255,255,255,.08)"}`,
+            background: activeSection === id ? `${WARM}18` : "rgba(255,255,255,.03)",
+            color: activeSection === id ? WARM : "rgba(245,240,232,.4)",
+            fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700, cursor: "pointer",
+          }}>{label}</button>
         ))}
       </div>
-
       {activeSection === "rights" && (
         <>
           {consent && (
-            <Card style={{ marginBottom: 14, background: `${G}06`, borderColor: `${G}20` }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: G, marginBottom: 10 }}>✓ Consent Record</div>
-              {[["Accepted", new Date(consent.timestamp).toLocaleString()], ["ToS Version", consent.tosVersion], ["Privacy Version", consent.privacyVersion], ["Method", consent.method]].map(([k, v]) => (
+            <Card style={{ marginBottom: 14, borderColor: `${SAGE}25` }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: SAGE, marginBottom: 10 }}>✓ Consent on Record</div>
+              {[["Accepted", new Date(consent.timestamp).toLocaleString()], ["ToS", consent.tosVersion], ["Privacy", consent.privacyVersion]].map(([k, v]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,.05)" }}>
-                  <span style={{ color: "rgba(255,255,255,.4)" }}>{k}</span><span style={{ color: "rgba(255,255,255,.8)" }}>{v}</span>
+                  <span style={{ color: "rgba(245,240,232,.35)" }}>{k}</span><span style={{ color: "rgba(245,240,232,.8)" }}>{v}</span>
                 </div>
               ))}
             </Card>
           )}
-          <button onClick={onDeleteData} style={{ width: "100%", padding: "13px", borderRadius: 12, border: `1px solid ${R}40`, background: `${R}08`, color: R, fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 700, cursor: "pointer", marginBottom: 8 }}>🗑️ Delete All My Data (GDPR / CCPA Right to Erasure)</button>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,.3)", textAlign: "center", lineHeight: 1.5 }}>This permanently removes all locally stored data and revokes consent.</div>
+          <button onClick={onDeleteData} style={{ width: "100%", padding: "13px", borderRadius: 14, border: `1px solid rgba(244,67,54,.3)`, background: "rgba(244,67,54,.06)", color: "#ef9a9a", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 14, fontWeight: 700, cursor: "pointer", marginBottom: 8 }}>🗑️ Delete All My Data (GDPR / CCPA)</button>
+          <div style={{ fontSize: 11, color: "rgba(245,240,232,.25)", textAlign: "center" }}>Permanently removes all local data and revokes consent.</div>
         </>
       )}
       {activeSection === "audit" && (
         <Card>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,.35)", marginBottom: 12 }}>Activity Audit Log (Local)</div>
-          {audit.length === 0
-            ? <div style={{ fontSize: 13, color: "rgba(255,255,255,.3)", textAlign: "center", padding: "20px 0" }}>No audit entries yet</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(245,240,232,.3)", marginBottom: 12 }}>Activity Log (Local Only)</div>
+          {audit.length === 0 ? <div style={{ fontSize: 13, color: "rgba(245,240,232,.25)", textAlign: "center", padding: "20px 0" }}>No entries yet</div>
             : [...audit].reverse().map((entry, i) => (
               <div key={i} style={{ padding: "9px 0", borderBottom: "1px solid rgba(255,255,255,.05)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: G }}>{entry.action}</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,.3)" }}>{new Date(entry.ts).toLocaleString()}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: WARM }}>{entry.action}</span>
+                  <span style={{ fontSize: 10, color: "rgba(245,240,232,.25)" }}>{new Date(entry.ts).toLocaleString()}</span>
                 </div>
-                {entry.detail && <div style={{ fontSize: 11, color: "rgba(255,255,255,.4)" }}>{entry.detail}</div>}
+                {entry.detail && <div style={{ fontSize: 11, color: "rgba(245,240,232,.35)" }}>{entry.detail}</div>}
               </div>
             ))}
         </Card>
       )}
       {activeSection === "inventory" && (
         <Card>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,.35)", marginBottom: 14 }}>Complete Data Inventory</div>
-          {[
-            ["Display Name", "localStorage", "First name only", G],
-            ["Age Bracket", "localStorage", "e.g. '25–34' — not exact age", G],
-            ["BMI Category", "localStorage", "e.g. 'normal' — not exact weight", G],
-            ["Meal Plan", "localStorage", "AI-generated — no PII", G],
-            ["Health Report", "NOT STORED", "Session-only, immediately discarded", R],
-            ["GPS Coordinates", "NOT STORED", "Never collected", R],
-            ["Full Name", "NOT STORED", "Never collected", R],
-            ["IP Address", "NOT STORED", "Never collected", R],
-          ].map(([field, location, note, color]) => (
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(245,240,232,.3)", marginBottom: 14 }}>Data Inventory</div>
+          {[["Display Name", "localStorage", "First name only", SAGE], ["Age Bracket", "localStorage", "e.g. '25–34'", SAGE], ["Meal Plan", "localStorage", "AI-generated, no PII", SAGE], ["Health Report", "NOT STORED", "Session-only, discarded", R], ["GPS Coords", "NOT STORED", "Never collected", R], ["IP Address", "NOT STORED", "Never collected", R]].map(([field, loc, note, color]) => (
             <div key={field} style={{ padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,.05)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{field}</span>
-                <Tag color={color}>{location}</Tag>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: CREAM }}>{field}</span>
+                <Tag color={color}>{loc}</Tag>
               </div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,.4)" }}>{note}</div>
+              <div style={{ fontSize: 11, color: "rgba(245,240,232,.35)" }}>{note}</div>
             </div>
           ))}
         </Card>
       )}
       {activeSection === "analytics" && (
         <Card>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,.35)", marginBottom: 14 }}>Aggregate Signals (This Device)</div>
-          {Object.keys(analytics).length === 0
-            ? <div style={{ fontSize: 13, color: "rgba(255,255,255,.3)", textAlign: "center", padding: "16px 0" }}>No analytics recorded yet</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(245,240,232,.3)", marginBottom: 14 }}>Aggregate Signals (This Device)</div>
+          {Object.keys(analytics).length === 0 ? <div style={{ fontSize: 13, color: "rgba(245,240,232,.25)", textAlign: "center", padding: "16px 0" }}>No analytics yet</div>
             : Object.entries(analytics).map(([key, count]) => (
               <div key={key} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,.05)" }}>
-                <span style={{ color: "rgba(255,255,255,.6)" }}>{key}</span><span style={{ color: G, fontWeight: 600 }}>{count}</span>
+                <span style={{ color: "rgba(245,240,232,.5)" }}>{key}</span><span style={{ color: WARM, fontWeight: 700 }}>{count}</span>
               </div>
             ))}
         </Card>
@@ -464,19 +649,84 @@ function CompliancePanel({ onDeleteData }) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MARKDOWN RENDERER
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderMarkdown(text) {
+  if (!text) return null;
+  const lines = text.split("\n");
+  const elements = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.startsWith("## ")) {
+      elements.push(<div key={i} style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontWeight: 700, color: WARM, marginTop: 14, marginBottom: 5 }}>{line.replace(/^##\s*/, "")}</div>);
+    } else if (line.startsWith("### ") || (line.startsWith("**") && line.endsWith("**"))) {
+      const clean = line.replace(/^###\s*/, "").replace(/^\*\*/, "").replace(/\*\*$/, "");
+      elements.push(<div key={i} style={{ fontSize: 13, fontWeight: 700, color: WARM2, marginTop: 10, marginBottom: 4 }}>{clean}</div>);
+    } else if (line.startsWith("- ") || line.startsWith("* ")) {
+      const content = line.replace(/^[-*]\s*/, "");
+      const parts = content.split(/\*\*(.*?)\*\*/g);
+      elements.push(
+        <div key={i} style={{ display: "flex", gap: 8, marginBottom: 5, paddingLeft: 4 }}>
+          <span style={{ color: WARM, flexShrink: 0, marginTop: 3, fontSize: 10 }}>●</span>
+          <span style={{ fontSize: 13, color: "rgba(245,240,232,.8)", lineHeight: 1.6 }}>
+            {parts.map((p, j) => j % 2 === 1 ? <strong key={j} style={{ color: CREAM, fontWeight: 700 }}>{p}</strong> : p)}
+          </span>
+        </div>
+      );
+    } else if (line.startsWith("*") && line.endsWith("*") && !line.startsWith("**")) {
+      elements.push(<div key={i} style={{ fontSize: 11, color: "rgba(245,240,232,.35)", fontStyle: "italic", marginBottom: 4 }}>{line.replace(/^\*/, "").replace(/\*$/, "")}</div>);
+    } else if (line.trim() === "") {
+      elements.push(<div key={i} style={{ height: 7 }} />);
+    } else {
+      const parts = line.split(/\*\*(.*?)\*\*/g);
+      elements.push(
+        <div key={i} style={{ fontSize: 13, color: "rgba(245,240,232,.8)", lineHeight: 1.7, marginBottom: 2 }}>
+          {parts.map((p, j) => j % 2 === 1 ? <strong key={j} style={{ color: CREAM, fontWeight: 700 }}>{p}</strong> : p)}
+        </div>
+      );
+    }
+    i++;
+  }
+  return elements;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CHAT BUBBLE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function ChatBubble({ msg, onChip }) {
   const isUser = msg.role === "user";
   return (
-    <div style={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start", marginBottom: 10 }}>
-      {!isUser && <div style={{ width: 30, height: 30, borderRadius: "50%", background: `${G}20`, border: `1px solid ${G}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0, marginRight: 8, marginTop: 2 }}>⚡</div>}
-      <div style={{ maxWidth: "80%", padding: "11px 15px", borderRadius: isUser ? "16px 16px 4px 16px" : "4px 16px 16px 16px", background: isUser ? `${G}1a` : "rgba(255,255,255,.05)", border: `1px solid ${isUser ? G + "35" : "rgba(255,255,255,.09)"}`, fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,.85)", whiteSpace: "pre-wrap" }}>
-        {msg.content}
-        {msg.type === "emergency" && <div style={{ marginTop: 10, padding: "10px 12px", background: "rgba(255,107,107,.12)", border: "1px solid rgba(255,107,107,.3)", borderRadius: 10, fontSize: 12, color: R, fontWeight: 600 }}>🚨 Call 911 (US) or your local emergency number immediately.</div>}
-        {msg.type === "ed_risk" && <div style={{ marginTop: 10, padding: "10px 12px", background: "rgba(255,184,77,.08)", border: "1px solid rgba(255,184,77,.25)", borderRadius: 10, fontSize: 12, color: A }}>💛 NEDA Helpline: 1-800-931-2237 · Text "NEDA" to 741741</div>}
-        {msg.chips?.length > 0 && <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>{msg.chips.map((c, i) => <span key={i} onClick={() => onChip?.(c)} style={{ fontSize: 11, background: `${B}18`, border: `1px solid ${B}30`, color: B, padding: "4px 10px", borderRadius: 20, cursor: "pointer", fontWeight: 600 }}>{c}</span>)}</div>}
-        {!isUser && <div style={{ fontSize: 10, color: "rgba(255,255,255,.2)", marginTop: 8 }}>AI-generated · Not medical advice</div>}
+    <div style={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start", marginBottom: 12 }}>
+      {!isUser && (
+        <div style={{ width: 30, height: 30, borderRadius: "50%", background: `linear-gradient(135deg, ${WARM}30, ${WARM2}20)`, border: `1px solid ${WARM}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0, marginRight: 8, marginTop: 2 }}>⚡</div>
+      )}
+      <div style={{
+        maxWidth: "80%", padding: "12px 16px",
+        borderRadius: isUser ? "18px 18px 4px 18px" : "4px 18px 18px 18px",
+        background: isUser ? `linear-gradient(135deg, ${WARM}22, ${WARM2}18)` : "rgba(255,255,255,.05)",
+        border: `1px solid ${isUser ? WARM + "40" : "rgba(255,255,255,.09)"}`,
+        backdropFilter: "blur(12px)",
+        boxShadow: isUser ? `0 4px 20px ${WARM}15` : "0 4px 16px rgba(0,0,0,.2)",
+      }}>
+        {isUser
+          ? <span style={{ fontSize: 13, lineHeight: 1.7, color: CREAM, whiteSpace: "pre-wrap" }}>{msg.content}</span>
+          : renderMarkdown(msg.content)
+        }
+        {msg.type === "emergency" && (
+          <div style={{ marginTop: 10, padding: "10px 12px", background: "rgba(244,67,54,.1)", border: "1px solid rgba(244,67,54,.3)", borderRadius: 10, fontSize: 12, color: "#ef9a9a", fontWeight: 600 }}>🚨 Call 911 or your local emergency number immediately.</div>
+        )}
+        {msg.type === "ed_risk" && (
+          <div style={{ marginTop: 10, padding: "10px 12px", background: "rgba(255,183,77,.07)", border: "1px solid rgba(255,183,77,.25)", borderRadius: 10, fontSize: 12, color: WARM }}>💛 NEDA Helpline: 1-800-931-2237 · Text "NEDA" to 741741</div>
+        )}
+        {msg.chips?.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+            {msg.chips.map((c, i) => (
+              <span key={i} onClick={() => onChip?.(c)} style={{ fontSize: 11, background: `${SKY}14`, border: `1px solid ${SKY}30`, color: SKY, padding: "4px 11px", borderRadius: 20, cursor: "pointer", fontWeight: 600, transition: "all .2s" }}>{c}</span>
+            ))}
+          </div>
+        )}
+        {!isUser && <div style={{ fontSize: 10, color: "rgba(245,240,232,.18)", marginTop: 8 }}>AI-generated · Not medical advice</div>}
       </div>
     </div>
   );
@@ -526,7 +776,7 @@ export default function FuelPlanPro() {
   const eth = () => ETHNICITIES.find(e => e.id === profile.ethnicity);
   const buildSystem = () => {
     const ctx = Privacy.buildAPIContext(profile, macros);
-    return `User context (anonymized — no PII): Age bracket: ${ctx.ageBracket}, BMI category: ${ctx.bmiCategory}, Gender: ${ctx.gender}, Heritage: ${ETHNICITIES.find(e => e.id === ctx.ethnicity)?.label || "not set"}, Goal: ${ctx.goal}, Budget: ${ctx.budget}. Staples: ${eth()?.staples?.join(", ") || "general"}. ${ctx.macros ? `Macro targets: ${ctx.macros}.` : ""} Be warm, concise, culturally-aware, and always safety-conscious.`;
+    return `User context (anonymized): Age bracket: ${ctx.ageBracket}, BMI: ${ctx.bmiCategory}, Gender: ${ctx.gender}, Heritage: ${ETHNICITIES.find(e => e.id === ctx.ethnicity)?.label || "not set"}, Goal: ${ctx.goal}, Budget: ${ctx.budget}. Staples: ${eth()?.staples?.join(", ") || "general"}. ${ctx.macros ? `Macros: ${ctx.macros}.` : ""} Be warm, concise, culturally-aware, safety-conscious.`;
   };
 
   const getLocation = () => {
@@ -537,7 +787,7 @@ export default function FuelPlanPro() {
         const city = d.address?.city || d.address?.town || d.address?.suburb || "";
         const state = d.address?.state_code || "";
         setLocLbl(`${city}${city && state ? ", " : ""}${state}`);
-        Compliance.auditLog("location_resolved", "city-level only, coords discarded");
+        Compliance.auditLog("location_resolved", "city-level only");
       } catch { setLocLbl("Your Area"); }
     });
   };
@@ -546,7 +796,7 @@ export default function FuelPlanPro() {
     const f = e.target.files[0]; if (!f) return;
     setHFile(f);
     const reader = new FileReader();
-    reader.onload = ev => { setHB64(ev.target.result.split(",")[1]); Compliance.auditLog("health_report_loaded", "session-only, not stored"); };
+    reader.onload = ev => { setHB64(ev.target.result.split(",")[1]); Compliance.auditLog("health_report_loaded", "session-only"); };
     reader.readAsDataURL(f);
   };
 
@@ -558,12 +808,12 @@ export default function FuelPlanPro() {
     const sys = `Expert sports dietitian. Return ONLY valid JSON.`;
     let msgs;
     if (healthBase64) {
-      msgs = [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: healthBase64 } }, { type: "text", text: `Analyze this health report. Anonymized profile: age bracket ${Privacy.anonymize(profile).ageBracket}, ${Privacy.anonymize(profile).bmiCategory} BMI, ${profile.gender}, goal: ${profile.goal}, heritage: ${eth()?.label}, staples: ${eth()?.staples?.join(", ")}. Return JSON: {"macros":{"calories":number,"protein_g":number,"carbs_g":number,"fat_g":number,"fiber_g":number},"micros":[{"name":string,"target":string,"reason":string,"foods":[string]}],"insights":[string],"warnings":[string],"ethnicity_note":string}` }] }];
+      msgs = [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: healthBase64 } }, { type: "text", text: `Analyze this health report. Anonymized: ${Privacy.anonymize(profile).ageBracket}, ${Privacy.anonymize(profile).bmiCategory} BMI, ${profile.gender}, goal: ${profile.goal}, heritage: ${eth()?.label}, staples: ${eth()?.staples?.join(", ")}. Return JSON: {"macros":{"calories":number,"protein_g":number,"carbs_g":number,"fat_g":number,"fiber_g":number},"micros":[{"name":string,"target":string,"reason":string,"foods":[string]}],"insights":[string],"warnings":[string],"ethnicity_note":string}` }] }];
     } else {
       const ap = Privacy.anonymize(profile);
       const estW = ap.bmiCategory === "underweight" ? 55 : ap.bmiCategory === "overweight" ? 85 : ap.bmiCategory === "obese" ? 105 : 70;
       const midAge = profile.age < 25 ? 22 : profile.age < 35 ? 30 : profile.age < 45 ? 40 : profile.age < 55 ? 50 : 60;
-      msgs = [{ role: "user", content: `Calculate macros. Approximate profile: ~${midAge}yo, ~${estW}kg estimated, ${profile.gender}, goal: ${profile.goal}, heritage: ${eth()?.label}, budget: ${profile.budget}, staples: ${eth()?.staples?.join(", ")}. Return JSON: {"macros":{"calories":number,"protein_g":number,"carbs_g":number,"fat_g":number,"fiber_g":number},"micros":[{"name":string,"target":string,"reason":string,"foods":[string]}],"insights":[string],"warnings":[],"ethnicity_note":string}` }];
+      msgs = [{ role: "user", content: `Calculate macros. ~${midAge}yo, ~${estW}kg est, ${profile.gender}, goal: ${profile.goal}, heritage: ${eth()?.label}, budget: ${profile.budget}, staples: ${eth()?.staples?.join(", ")}. Return JSON: {"macros":{"calories":number,"protein_g":number,"carbs_g":number,"fat_g":number,"fiber_g":number},"micros":[{"name":string,"target":string,"reason":string,"foods":[string]}],"insights":[string],"warnings":[],"ethnicity_note":string}` }];
     }
     const data = await callJSON(msgs, sys);
     if (data?.macros) {
@@ -592,7 +842,7 @@ export default function FuelPlanPro() {
     setLoading(l => ({ ...l, deals: true })); getLocation();
     Compliance.auditLog("deals_searched", `location:${locationLabel || "unknown"}`);
     const loc = locationLabel || "United States";
-    const raw = await callClaude([{ role: "user", content: `Current grocery deals near ${loc} for: ${groceryList.slice(0, 8).join(", ")}. Also stores with ${eth()?.label} foods near ${loc}. Return JSON array of 7 deals: [{"store":string,"item":string,"price":string,"savings":string,"tag":string,"tip":string,"category":"protein"|"produce"|"pantry"|"specialty"}]` }], `Grocery deals expert. Return ONLY valid JSON array.`, true);
+    const raw = await callClaude([{ role: "user", content: `Current grocery deals near ${loc} for: ${groceryList.slice(0, 8).join(", ")}. Also stores with ${eth()?.label} foods near ${loc}. Return JSON array of 6 deals: [{"store":string,"item":string,"price":string,"savings":string,"tag":string,"tip":string,"category":"protein"|"produce"|"pantry"|"specialty"}]` }], `Grocery deals expert. Return ONLY valid JSON array.`, true);
     try { const m = raw.replace(/```json|```/g, "").trim().match(/\[[\s\S]*\]/); if (m) setDeals(JSON.parse(m[0])); else setDeals(fallbackDeals()); } catch { setDeals(fallbackDeals()); }
     setLoading(l => ({ ...l, deals: false }));
   }, [groceryList, locationLabel, profile.ethnicity]);
@@ -601,7 +851,7 @@ export default function FuelPlanPro() {
     { store: "Walmart", item: `${eth()?.staples?.[0] || "Chicken breast"} (2lb)`, price: "$6.98", savings: "Save 18%", tag: "Best Value", tip: "Check international aisle", category: "protein" },
     { store: "Trader Joe's", item: "Organic lentils (1lb)", price: "$1.99", savings: "Save 30%", tag: "Staple", tip: "High-fiber plant protein", category: "pantry" },
     { store: "Costco", item: "Wild Salmon (3lb)", price: "$19.99", savings: "Save 35%", tag: "Bulk Deal", tip: "Portion and freeze same day", category: "protein" },
-    { store: "H Mart / International Market", item: `${eth()?.label} specialty ingredients`, price: "$4.49", savings: "Save 40%", tag: "Ethnic Pick", tip: "Best authentic source", category: "specialty" },
+    { store: "H Mart", item: `${eth()?.label} specialty ingredients`, price: "$4.49", savings: "Save 40%", tag: "Ethnic Pick", tip: "Best authentic source", category: "specialty" },
   ];
 
   useEffect(() => {
@@ -616,7 +866,7 @@ export default function FuelPlanPro() {
     setStep("plan"); setTab("plan");
     const data = await analyzeMacros();
     await generatePlan(data);
-    const greeting = await callClaude([{ role: "user", content: `Warm 2-sentence welcome for new ${eth()?.label} ${profile.goal} plan. Mention one cultural staple food. Under 35 words. No personal identifiers.` }], buildSystem());
+    const greeting = await callClaude([{ role: "user", content: `Warm 2-sentence welcome for new ${eth()?.label} ${profile.goal} plan. Mention one cultural staple. Under 35 words.` }], buildSystem());
     setCH([{ role: "assistant", content: greeting.trim(), chips: ["What to eat first?", "Swap a meal", "Explain my macros", "Find deals near me", "Snack ideas"] }]);
     setChatOpen(true);
   };
@@ -625,181 +875,639 @@ export default function FuelPlanPro() {
     if (!text.trim() || chatLoading) return;
     const screen = Safety.screenMessage(text);
     Compliance.auditLog("chat_message", `type:${screen.type}`);
-    if (screen.block) { setCH(h => [...h, { role: "user", content: text }, { role: "assistant", content: "🚨 This sounds like a medical emergency. Please call 911 or your local emergency services immediately.", type: "emergency" }]); return; }
+    if (screen.block) { setCH(h => [...h, { role: "user", content: text }, { role: "assistant", content: "🚨 This sounds like a medical emergency. Please call 911 immediately.", type: "emergency" }]); return; }
     const apiHist = [...chatHistory.map(m => ({ role: m.role, content: m.content })), { role: "user", content: text.trim() }];
     setCH(h => [...h, { role: "user", content: text.trim() }]); setChatInput(""); setCL(true);
-    let sysAdd = "";
-    if (screen.type === "diagnosis") sysAdd = "User is asking for a medical diagnosis. Firmly but compassionately decline and direct them to a qualified physician or registered dietitian.";
-    if (screen.type === "ed_risk") sysAdd = "User may be showing signs of disordered eating. Respond with warmth and compassion. Provide the NEDA helpline.";
-    if (screen.type === "minor_mention") sysAdd = "If user is asking about nutrition for a child, remind them that pediatric nutrition requires a pediatric dietitian.";
-    const lower = text.toLowerCase(); let reply = "";
-    if ((lower.includes("swap") || lower.includes("replace")) && mealPlan) {
-      const sw = await callJSON([{ role: "user", content: `User: "${text}". ${eth()?.label} plan. Goal: ${profile.goal}. 1 culturally-appropriate swap. JSON: {"original":string,"name":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string],"reason":string}` }], buildSystem() + "\n" + sysAdd);
-      reply = sw ? `Great swap idea!\n\n🔄 Replace: ${sw.original}\n✅ With: ${sw.name}\n\n${sw.reason}\n\nMacros: ${sw.cals} cal · ${sw.protein}g protein · ${sw.carbs}g carbs\nIngredients: ${sw.ingredients?.join(", ")}\n\n⚕️ Verify this fits your individual health needs with a dietitian.` : await callClaude(apiHist, buildSystem() + "\n" + sysAdd);
+
+    let sysAdd = "Keep responses concise. Use ## for headers, **bold**, - for bullets. Don't write full meal plans in chat — direct to Plan tab.";
+    if (screen.type === "diagnosis") sysAdd += " Decline diagnosis requests, redirect to physician.";
+    if (screen.type === "ed_risk") sysAdd += " Respond with compassion, provide NEDA helpline.";
+    if (screen.type === "minor_mention") sysAdd += " Redirect to pediatric dietitian.";
+
+    const lower = text.toLowerCase(); let reply = ""; let chips = ["Tell me more", "Adjust my plan", "Recipe ideas", "Shopping tips"];
+
+    if (lower.includes("daily plan") || lower.includes("full plan") || lower.includes("meal plan") || lower.includes("each meal") || lower.includes("all meals")) {
+      reply = `Your full meal plan is on the **🍽️ Plan tab** above!\n\nEach meal — breakfast, lunch, dinner, and snack — is laid out with calories and ingredients. Tap any meal card to expand it.\n\nWant me to **swap a specific meal** or explain your **macros** instead?`;
+      chips = ["Swap a meal", "Explain my macros", "Snack ideas", "Find deals near me"];
+    } else if ((lower.includes("swap") || lower.includes("replace")) && mealPlan) {
+      const sw = await callJSON([{ role: "user", content: `User: "${text}". ${eth()?.label} plan, goal: ${profile.goal}. 1 culturally-appropriate swap. JSON: {"original":string,"name":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string],"reason":string}` }], buildSystem() + "\n" + sysAdd);
+      reply = sw ? `Great swap!\n\n🔄 **Replace:** ${sw.original}\n✅ **With:** ${sw.name}\n\n${sw.reason}\n\n**Macros:** ${sw.cals} cal · ${sw.protein}g P · ${sw.carbs}g C\n**Ingredients:** ${sw.ingredients?.join(", ")}\n\n⚕️ Verify with a dietitian.` : await callClaude(apiHist, buildSystem() + "\n" + sysAdd);
+      chips = ["Another swap", "Vegetarian option", "Show grocery list"];
     } else if ((lower.includes("deal") || lower.includes("shop") || lower.includes("buy")) && deals.length === 0) {
-      await fetchDeals(); reply = `I've searched for current grocery deals! Check the 🛒 Deals tab for real-time prices on your plan's ingredients near you.`;
+      await fetchDeals(); reply = `Searching for deals near you now! 🛒 Check the **Deals section** on the Plan tab for live grocery prices.`;
+      chips = ["Best deal?", "Bulk buying tips", "Ethnic stores near me"];
     } else { reply = await callClaude(apiHist, buildSystem() + "\n" + sysAdd); }
-    const chips = (lower.includes("swap") || lower.includes("replace")) ? ["Another swap", "Vegetarian option", "Show grocery list"] : ["Tell me more", "Adjust my plan", "Recipe ideas", "Shopping tips"];
+
     setCH(h => [...h, { role: "assistant", content: reply.trim(), chips, type: screen.type !== "safe" ? screen.type : undefined }]); setCL(false);
   }, [chatHistory, chatLoading, mealPlan, deals, profile, macros, fetchDeals]);
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatHistory, chatLoading]);
-
   const dayTotals = d => d ? Object.values(d.meals).reduce((a, m) => ({ cals: a.cals + (m.cals || 0), protein: a.protein + (m.protein || 0), carbs: a.carbs + (m.carbs || 0), fat: a.fat + (m.fat || 0) }), { cals: 0, protein: 0, carbs: 0, fat: 0 }) : {};
-  const catColor = { protein: G, produce: "#a8e063", pantry: A, specialty: P };
   const handleDeleteData = () => { if (window.confirm("Delete all your data? This cannot be undone.")) { Compliance.revokeConsent(); setConsented(false); setStep("profile"); setMacros(null); setMealPlan(null); setGrocery([]); } };
 
   if (!consented) return (
     <><style>{css}</style>
       <ConsentScreen
-        onAccept={() => { Compliance.recordConsent(true); Compliance.auditLog("consent_accepted", `tos:${LEGAL.TOS_VERSION}`); setConsented(true); }}
-        onDecline={() => { window.alert("You must accept the Terms of Service and Privacy Policy to use FuelPlan Pro."); }}
+        onAccept={() => { Compliance.recordConsent(true); Compliance.auditLog("consent_accepted"); setConsented(true); }}
+        onDecline={() => window.alert("You must accept the Terms to use FuelPlan Pro.")}
       /></>
   );
 
+  const ethPhoto = FOOD_PHOTOS[profile.ethnicity] || FOOD_PHOTOS.hero;
+
   return (
-    <div style={{ minHeight: "100vh", background: "#07080f", color: "#eef0f5" }}>
+    <div style={{ minHeight: "100vh", background: DARK, color: CREAM }}>
       <style>{css}</style>
 
-      {/* ━━ PROFILE STEP ━━ */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          PROFILE STEP — full-bleed food photo hero
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {step === "profile" && (
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 16px", background: `radial-gradient(ellipse 100% 50% at 50% -10%, ${G}10 0%, transparent 70%)` }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: G, marginBottom: 10 }}>FUELPLAN PRO</div>
-          <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(32px,6vw,60px)", fontWeight: 800, textAlign: "center", lineHeight: .95, marginBottom: 10 }}>YOUR HERITAGE.<br /><span style={{ color: G }}>YOUR HEALTH.</span><br />YOUR FOOD.</h1>
-          <div style={{ display: "flex", gap: 8, marginBottom: 32, flexWrap: "wrap", justifyContent: "center" }}>
-            <div style={{ background: `${G}10`, border: `1px solid ${G}25`, borderRadius: 8, padding: "5px 12px", fontSize: 11, color: G, fontWeight: 700 }}>🔒 Privacy First</div>
-            <div style={{ background: "rgba(255,107,107,.08)", border: "1px solid rgba(255,107,107,.2)", borderRadius: 8, padding: "5px 12px", fontSize: 11, color: R, fontWeight: 700 }}>⚕️ Not Medical Advice</div>
-            <div style={{ background: `${B}10`, border: `1px solid ${B}25`, borderRadius: 8, padding: "5px 12px", fontSize: 11, color: B, fontWeight: 700 }}>✅ GDPR/CCPA Compliant</div>
+        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+          {/* Hero section with food photo */}
+          <div style={{ position: "relative", height: 280, overflow: "hidden", flexShrink: 0 }}>
+            <img src={profile.ethnicity ? ethPhoto : FOOD_PHOTOS.hero} alt=""
+              style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity .6s ease" }} />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(160deg, rgba(13,10,7,.1) 0%, rgba(13,10,7,.5) 50%, rgba(13,10,7,1) 100%)" }} />
+            {/* Floating badge */}
+            <div style={{ position: "absolute", top: 20, left: 16, display: "flex", gap: 8 }}>
+              <div style={{ background: "rgba(13,10,7,.7)", backdropFilter: "blur(12px)", border: `1px solid ${WARM}30`, borderRadius: 20, padding: "5px 12px", fontSize: 10, fontWeight: 700, color: WARM, letterSpacing: 1.5, textTransform: "uppercase" }}>🍽️ FuelPlan Pro</div>
+            </div>
+            {/* Hero text */}
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 20px 24px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: WARM, marginBottom: 8, opacity: .85 }}>Your Heritage. Your Health.</div>
+              <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(30px,6vw,48px)", fontWeight: 900, lineHeight: 1.05, color: CREAM, marginBottom: 6 }}>
+                Eat With Your<br /><span style={{ fontStyle: "italic", color: WARM }}>Roots.</span>
+              </h1>
+              <p style={{ fontSize: 13, color: "rgba(245,240,232,.55)", lineHeight: 1.6, maxWidth: 300 }}>AI meal plans rooted in your culture, goals, and grocery budget.</p>
+            </div>
           </div>
-          <div style={{ width: "100%", maxWidth: 520, background: "rgba(255,255,255,.025)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 24, padding: 28 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+
+          {/* Trust badges */}
+          <div style={{ display: "flex", gap: 8, padding: "14px 16px 10px", overflowX: "auto" }}>
+            {[["🔒", "Privacy First", SAGE], ["⚕️", "Not Medical Advice", "#ef9a9a"], ["✅", "GDPR Compliant", SKY]].map(([icon, label, color]) => (
+              <div key={label} style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6, background: `${color}10`, border: `1px solid ${color}25`, borderRadius: 20, padding: "5px 12px" }}>
+                <span style={{ fontSize: 11 }}>{icon}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color, letterSpacing: .5 }}>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Form card */}
+          <div style={{ flex: 1, padding: "0 14px 40px", maxWidth: 520, margin: "0 auto", width: "100%" }}>
+            {/* Basic info */}
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(245,240,232,.3)", marginBottom: 10, marginTop: 4 }}>Your Details</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
               {[["Name", "name", "text", "First name"], ["Age", "age", "number", "Years"], ["Weight (kg)", "weight", "number", "kg"], ["Height (cm)", "height", "number", "cm"]].map(([lb, k, t, ph]) => (
-                <div key={k}><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,.3)", marginBottom: 6 }}>{lb}</div><input type={t} placeholder={ph} value={profile[k]} onChange={e => setProfile(p => ({ ...p, [k]: e.target.value }))} style={{ width: "100%", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 10, padding: "10px 14px", color: "#eef0f5", fontFamily: "'DM Sans',sans-serif", fontSize: 14 }} /></div>
+                <div key={k}>
+                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(245,240,232,.3)", marginBottom: 6 }}>{lb}</div>
+                  <input type={t} placeholder={ph} value={profile[k]} onChange={e => setProfile(p => ({ ...p, [k]: e.target.value }))}
+                    style={{ width: "100%", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 12, padding: "11px 14px", color: CREAM, fontSize: 14, transition: "border-color .2s" }}
+                    onFocus={e => e.target.style.borderColor = WARM}
+                    onBlur={e => e.target.style.borderColor = "rgba(255,255,255,.1)"}
+                  />
+                </div>
               ))}
             </div>
-            <div style={{ marginBottom: 18 }}><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,.3)", marginBottom: 8 }}>Biological Sex</div><div style={{ display: "flex", gap: 8 }}>{["male", "female", "other"].map(g => <Pill key={g} active={profile.gender === g} onClick={() => setProfile(p => ({ ...p, gender: g }))} color={G}>{g.charAt(0).toUpperCase() + g.slice(1)}</Pill>)}</div></div>
-            <div style={{ marginBottom: 18 }}><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,.3)", marginBottom: 8 }}>Cultural Heritage</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>{ETHNICITIES.map(e => <button key={e.id} onClick={() => setProfile(p => ({ ...p, ethnicity: e.id }))} style={{ padding: "10px 14px", borderRadius: 12, border: `1px solid ${profile.ethnicity === e.id ? G : "rgba(255,255,255,.08)"}`, background: profile.ethnicity === e.id ? `${G}12` : "transparent", color: profile.ethnicity === e.id ? G : "rgba(255,255,255,.55)", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "all .2s" }}><span>{e.emoji}</span><span>{e.label}</span></button>)}</div>
+
+            {/* Gender */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(245,240,232,.3)", marginBottom: 10 }}>Biological Sex</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {["male", "female", "other"].map(g => <Pill key={g} active={profile.gender === g} onClick={() => setProfile(p => ({ ...p, gender: g }))}>{g.charAt(0).toUpperCase() + g.slice(1)}</Pill>)}
+              </div>
             </div>
-            <div style={{ marginBottom: 18 }}><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,.3)", marginBottom: 8 }}>Primary Goal</div><div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{GOALS.map(g => <Pill key={g} active={profile.goal === g} onClick={() => setProfile(p => ({ ...p, goal: g }))} color={A}>{g}</Pill>)}</div></div>
-            <div onClick={() => fileRef.current?.click()} style={{ border: `2px dashed ${healthFile ? B : "rgba(255,255,255,.1)"}`, borderRadius: 14, padding: "16px", textAlign: "center", cursor: "pointer", background: healthFile ? `${B}08` : "transparent", marginBottom: 18, transition: "all .3s" }}>
-              <div style={{ fontSize: 20, marginBottom: 4 }}>{healthFile ? "📄" : "📋"}</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: healthFile ? B : "rgba(255,255,255,.4)", marginBottom: 2 }}>{healthFile ? healthFile.name : "Upload Health Report (optional)"}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,.28)" }}>Session-only · Never stored · Discarded after analysis</div>
+
+            {/* Cultural Heritage — with mini food photos */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(245,240,232,.3)", marginBottom: 10 }}>Cultural Heritage</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {ETHNICITIES.map(e => {
+                  const isSelected = profile.ethnicity === e.id;
+                  const photo = FOOD_PHOTOS[e.id];
+                  return (
+                    <button key={e.id} onClick={() => setProfile(p => ({ ...p, ethnicity: e.id }))}
+                      className="lift"
+                      style={{
+                        position: "relative", height: 80, borderRadius: 16, overflow: "hidden",
+                        border: `2px solid ${isSelected ? WARM : "rgba(255,255,255,.07)"}`,
+                        cursor: "pointer", padding: 0,
+                        boxShadow: isSelected ? `0 0 24px ${WARM}35` : "none",
+                        transition: "all .3s cubic-bezier(.22,1,.36,1)",
+                      }}>
+                      {photo && <img src={photo} alt={e.label} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />}
+                      <div style={{ position: "absolute", inset: 0, background: isSelected ? "rgba(13,10,7,.45)" : "rgba(13,10,7,.6)" }} />
+                      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                        <span style={{ fontSize: 20 }}>{e.emoji}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: isSelected ? WARM : CREAM, textAlign: "center", letterSpacing: .3 }}>{e.label}</span>
+                      </div>
+                      {isSelected && (
+                        <div style={{ position: "absolute", top: 7, right: 7, width: 18, height: 18, borderRadius: "50%", background: `linear-gradient(135deg, ${WARM}, ${WARM2})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: DARK }}>✓</div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Goal */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(245,240,232,.3)", marginBottom: 10 }}>Primary Goal</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {GOALS.map(g => <Pill key={g} active={profile.goal === g} onClick={() => setProfile(p => ({ ...p, goal: g }))} color={WARM2}>{g}</Pill>)}
+              </div>
+            </div>
+
+            {/* Health report upload */}
+            <div onClick={() => fileRef.current?.click()}
+              style={{
+                border: `2px dashed ${healthFile ? SKY : "rgba(255,255,255,.1)"}`,
+                borderRadius: 16, padding: "18px 16px", textAlign: "center", cursor: "pointer",
+                background: healthFile ? `${SKY}08` : "rgba(255,255,255,.02)", marginBottom: 20, transition: "all .3s",
+              }}>
+              <div style={{ fontSize: 24, marginBottom: 6 }}>{healthFile ? "📄" : "📋"}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: healthFile ? SKY : "rgba(245,240,232,.35)", marginBottom: 3 }}>{healthFile ? healthFile.name : "Upload Health Report (optional)"}</div>
+              <div style={{ fontSize: 11, color: "rgba(245,240,232,.2)" }}>Session-only · Never stored · Discarded after analysis</div>
               <input ref={fileRef} type="file" accept=".pdf,image/*" style={{ display: "none" }} onChange={handleFile} />
             </div>
-            <button onClick={startPlan} style={{ width: "100%", padding: 14, borderRadius: 12, border: "none", background: profile.ethnicity && profile.goal && profile.age ? G : "rgba(255,255,255,.08)", color: profile.ethnicity && profile.goal && profile.age ? "#07080f" : "rgba(255,255,255,.3)", fontFamily: "'Syne',sans-serif", fontSize: 16, fontWeight: 700, letterSpacing: 1, cursor: profile.ethnicity && profile.goal && profile.age ? "pointer" : "not-allowed", transition: "all .2s" }}>BUILD MY PLAN →</button>
+
+            {/* CTA */}
+            <button onClick={startPlan}
+              disabled={!(profile.ethnicity && profile.goal && profile.age)}
+              style={{
+                width: "100%", padding: "16px", borderRadius: 16, border: "none",
+                background: profile.ethnicity && profile.goal && profile.age
+                  ? `linear-gradient(135deg, ${WARM}, ${WARM2})`
+                  : "rgba(255,255,255,.06)",
+                color: profile.ethnicity && profile.goal && profile.age ? DARK : "rgba(245,240,232,.2)",
+                fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 700,
+                cursor: profile.ethnicity && profile.goal && profile.age ? "pointer" : "not-allowed",
+                transition: "all .3s", letterSpacing: .5,
+                boxShadow: profile.ethnicity && profile.goal && profile.age ? `0 8px 32px ${WARM}40` : "none",
+              }}>
+              Build My Plan →
+            </button>
             <MedDisclaimer compact />
           </div>
         </div>
       )}
 
-      {/* ━━ PLAN STEP ━━ */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          PLAN STEP — premium dashboard with food photos
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {step === "plan" && (
         <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,.06)", position: "sticky", top: 0, zIndex: 30, background: "rgba(7,8,15,.93)", backdropFilter: "blur(20px)" }}>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 17, fontWeight: 800 }}>FUEL<span style={{ color: G }}>PLAN</span><span style={{ fontSize: 10, background: `${G}20`, color: G, border: `1px solid ${G}30`, padding: "2px 7px", borderRadius: 20, marginLeft: 7, letterSpacing: 1 }}>PRO</span></div>
+
+          {/* Sticky top bar */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,.06)", position: "sticky", top: 0, zIndex: 30, background: "rgba(13,10,7,.92)", backdropFilter: "blur(24px)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              {locationLabel && <div style={{ fontSize: 11, color: "rgba(255,255,255,.35)" }}>📍 {locationLabel}</div>}
-              <div style={{ fontSize: 10, background: `${G}10`, border: `1px solid ${G}25`, borderRadius: 8, padding: "4px 10px", color: G, fontWeight: 700 }}>🔒 Private</div>
-              <div style={{ fontSize: 10, background: "rgba(255,107,107,.08)", border: "1px solid rgba(255,107,107,.2)", borderRadius: 8, padding: "4px 10px", color: R, fontWeight: 700 }}>⚕️ Not medical advice</div>
+              <span style={{ fontSize: 18 }}>🍽️</span>
+              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: CREAM }}>Fuel<span style={{ color: WARM, fontStyle: "italic" }}>Plan</span></div>
+              <span style={{ fontSize: 9, background: `${WARM}18`, color: WARM, border: `1px solid ${WARM}30`, padding: "2px 7px", borderRadius: 20, fontWeight: 700, letterSpacing: 1 }}>PRO</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {locationLabel && <div style={{ fontSize: 10, color: "rgba(245,240,232,.3)" }}>📍 {locationLabel}</div>}
+              <div style={{ fontSize: 10, background: `${SAGE}12`, border: `1px solid ${SAGE}25`, borderRadius: 16, padding: "3px 9px", color: SAGE, fontWeight: 700 }}>🔒 Private</div>
+              <div style={{ fontSize: 10, background: "rgba(244,67,54,.08)", border: "1px solid rgba(244,67,54,.2)", borderRadius: 16, padding: "3px 9px", color: "#ef9a9a", fontWeight: 700 }}>⚕️ Not medical</div>
             </div>
           </div>
 
+          {/* Tab bar */}
           <div style={{ display: "flex", gap: 3, padding: "10px 12px", background: "rgba(255,255,255,.015)", borderBottom: "1px solid rgba(255,255,255,.05)", overflowX: "auto" }}>
             {[["plan", "🍽️ Plan"], ["macros", "📊 Macros"], ["deals", "🛒 Deals"], ["grocery", "📋 List"], ["compliance", "🔒 Privacy"]].map(([id, label]) => (
-              <button key={id} onClick={() => { setTab(id); if (id === "deals" && deals.length === 0) fetchDeals(); }} style={{ flexShrink: 0, padding: "8px 13px", borderRadius: 8, border: "none", background: tab === id ? G : "transparent", color: tab === id ? "#07080f" : "rgba(255,255,255,.4)", fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all .2s" }}>{label}</button>
+              <button key={id} onClick={() => { setTab(id); if (id === "deals" && deals.length === 0) fetchDeals(); }}
+                style={{
+                  flexShrink: 0, padding: "9px 15px", borderRadius: 20, border: "none",
+                  background: tab === id ? `linear-gradient(135deg, ${WARM}, ${WARM2})` : "rgba(255,255,255,.04)",
+                  color: tab === id ? DARK : "rgba(245,240,232,.4)",
+                  fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 12, fontWeight: 700,
+                  cursor: "pointer", transition: "all .25s",
+                  boxShadow: tab === id ? `0 4px 20px ${WARM}35` : "none",
+                }}>{label}</button>
             ))}
           </div>
 
-          <div style={{ flex: 1, padding: "18px 14px", maxWidth: 640, margin: "0 auto", width: "100%", paddingBottom: 110 }}>
+          {/* Content */}
+          <div style={{ flex: 1, padding: "16px 14px", maxWidth: 640, margin: "0 auto", width: "100%", paddingBottom: 120 }}>
+
+            {/* PLAN TAB */}
             {tab === "plan" && (
               <>
                 {loading.plan || loading.macros ? <Spinner label="Building your culturally-rooted meal plan…" /> : (
                   <>
                     <MedDisclaimer />
                     <SafetyBanner warnings={safetyWarnings} />
-                    {aiInsight && <div style={{ background: `${G}0a`, border: `1px solid ${G}20`, borderRadius: 14, padding: "13px 16px", marginBottom: 16, display: "flex", gap: 10 }}><span style={{ fontSize: 16 }}>⚡</span><div><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: G, marginBottom: 4 }}>AI Coach · General Guidance Only</div><div style={{ fontSize: 13, color: "rgba(255,255,255,.75)", lineHeight: 1.6 }}>{aiInsight}</div><div style={{ fontSize: 10, color: "rgba(255,255,255,.25)", marginTop: 4 }}>AI-generated · Not a substitute for professional dietary advice</div></div></div>}
-                    {mealPlan && <div style={{ display: "flex", gap: 8, marginBottom: 16, overflowX: "auto" }}>{mealPlan.map((d, i) => <button key={i} onClick={() => setActiveDay(i)} style={{ flexShrink: 0, padding: "7px 16px", borderRadius: 8, border: `1px solid ${activeDay === i ? G : "rgba(255,255,255,.08)"}`, background: activeDay === i ? `${G}15` : "transparent", color: activeDay === i ? G : "rgba(255,255,255,.5)", fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{d.day}</button>)}</div>}
-                    {mealPlan && (() => { const t = dayTotals(mealPlan[activeDay]); return (<Card style={{ marginBottom: 16, display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, textAlign: "center" }}>{[["Calories", t.cals, A, ""], ["Protein", t.protein, G, "g"], ["Carbs", t.carbs, B, "g"], ["Fat", t.fat, "#ff6b9d", "g"]].map(([l, v, c, u]) => <div key={l}><div style={{ fontFamily: "'Syne',sans-serif", fontSize: 20, fontWeight: 700, color: c }}>{v}{u}</div><div style={{ fontSize: 10, color: "rgba(255,255,255,.3)", textTransform: "uppercase", letterSpacing: 1 }}>{l}</div></div>)}</Card>); })()}
+
+                    {/* AI insight banner */}
+                    {aiInsight && (
+                      <div style={{ background: `linear-gradient(135deg, ${WARM}10, ${WARM2}08)`, border: `1px solid ${WARM}25`, borderRadius: 16, padding: "14px 16px", marginBottom: 16, display: "flex", gap: 12, backdropFilter: "blur(12px)" }}>
+                        <span style={{ fontSize: 18, animation: "float 3s ease-in-out infinite" }}>⚡</span>
+                        <div>
+                          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: WARM, marginBottom: 4 }}>AI Coach · Today's Tip</div>
+                          <div style={{ fontSize: 13, color: "rgba(245,240,232,.8)", lineHeight: 1.6, fontStyle: "italic" }}>{aiInsight}</div>
+                          <div style={{ fontSize: 10, color: "rgba(245,240,232,.2)", marginTop: 4 }}>AI-generated · Not a substitute for professional dietary advice</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Day tabs */}
+                    {mealPlan && (
+                      <div style={{ display: "flex", gap: 8, marginBottom: 16, overflowX: "auto", paddingBottom: 4 }}>
+                        {mealPlan.map((d, i) => (
+                          <button key={i} onClick={() => setActiveDay(i)} style={{
+                            flexShrink: 0, padding: "8px 20px", borderRadius: 20,
+                            border: `1px solid ${activeDay === i ? WARM : "rgba(255,255,255,.08)"}`,
+                            background: activeDay === i ? `${WARM}18` : "rgba(255,255,255,.03)",
+                            color: activeDay === i ? WARM : "rgba(245,240,232,.4)",
+                            fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, fontWeight: 700,
+                            cursor: "pointer", transition: "all .25s",
+                          }}>{d.day}</button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Macro totals strip */}
+                    {mealPlan && (() => {
+                      const t = dayTotals(mealPlan[activeDay]);
+                      return (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 16 }}>
+                          {[["🔥", "Calories", t.cals, "", WARM], ["💪", "Protein", t.protein, "g", SAGE], ["🌾", "Carbs", t.carbs, "g", SKY], ["🥑", "Fat", t.fat, "g", ROSE]].map(([icon, l, v, u, c]) => (
+                            <div key={l} style={{ background: `${c}10`, border: `1px solid ${c}20`, borderRadius: 14, padding: "12px 10px", textAlign: "center", backdropFilter: "blur(8px)" }}>
+                              <div style={{ fontSize: 14, marginBottom: 2 }}>{icon}</div>
+                              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: c }}>{v}{u}</div>
+                              <div style={{ fontSize: 9, color: "rgba(245,240,232,.3)", textTransform: "uppercase", letterSpacing: 1, marginTop: 2 }}>{l}</div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Meal cards with food photos */}
                     {mealPlan && Object.entries(mealPlan[activeDay].meals).map(([type, meal]) => {
-                      const accMap = { breakfast: A, lunch: B, dinner: G, snack: P }; const acc = accMap[type] || G; const key = `${activeDay}-${type}`;
-                      return (<div key={type} style={{ marginBottom: 10 }}><div onClick={() => setExpanded(expanded === key ? null : key)} style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 16, padding: "15px 16px", cursor: "pointer", borderLeft: `3px solid ${acc}` }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}><div style={{ flex: 1 }}><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,.3)", marginBottom: 4 }}>{type}</div><div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{meal.name}</div>{meal.description && <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", lineHeight: 1.5, marginBottom: 7 }}>{meal.description}</div>}<div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>{[["🔥", meal.cals, "cal"], ["💪", meal.protein, "g P"], ["🌾", meal.carbs, "g C"], ["🥑", meal.fat, "g F"]].map(([ic, v, u]) => <span key={u} style={{ fontSize: 12, color: "rgba(255,255,255,.45)" }}>{ic} <strong style={{ color: "rgba(255,255,255,.8)" }}>{v}</strong>{u}</span>)}</div></div><span style={{ color: "rgba(255,255,255,.3)", fontSize: 16, marginLeft: 10 }}>{expanded === key ? "▲" : "▼"}</span></div>{expanded === key && <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,.06)" }}><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(255,255,255,.3)", marginBottom: 8 }}>Ingredients</div><div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{meal.ingredients?.map(ing => <span key={ing} style={{ fontSize: 12, background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", color: "rgba(255,255,255,.65)", padding: "4px 10px", borderRadius: 20 }}>{ing}</span>)}</div></div>}</div></div>);
+                      const accMap = { breakfast: WARM, lunch: SKY, dinner: SAGE, snack: ROSE };
+                      const acc = accMap[type] || WARM;
+                      const mealPhoto = FOOD_PHOTOS[type];
+                      const key = `${activeDay}-${type}`;
+                      const isOpen = expanded === key;
+                      return (
+                        <div key={type} className="lift" style={{ marginBottom: 12 }}>
+                          <div onClick={() => setExpanded(isOpen ? null : key)}
+                            style={{ background: "rgba(255,255,255,.04)", border: `1px solid rgba(255,255,255,.08)`, borderRadius: 20, overflow: "hidden", backdropFilter: "blur(16px)", boxShadow: "0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.06)", cursor: "pointer" }}>
+
+                            {/* Food photo header */}
+                            <div style={{ position: "relative", height: isOpen ? 140 : 90, overflow: "hidden", transition: "height .4s cubic-bezier(.22,1,.36,1)" }}>
+                              {mealPhoto && <img src={mealPhoto} alt={type} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform .6s ease" }} />}
+                              <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to right, rgba(13,10,7,.85) 0%, rgba(13,10,7,.3) 60%, rgba(13,10,7,.15) 100%)` }} />
+                              <div style={{ position: "absolute", inset: 0, padding: "14px 16px", display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+                                <div>
+                                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: acc, marginBottom: 3 }}>{type}</div>
+                                  <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 700, color: CREAM, lineHeight: 1.2 }}>{meal.name}</div>
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <div style={{ background: `${acc}20`, border: `1px solid ${acc}40`, borderRadius: 20, padding: "4px 10px", backdropFilter: "blur(8px)" }}>
+                                    <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontWeight: 700, color: acc }}>{meal.cals}</span>
+                                    <span style={{ fontSize: 10, color: "rgba(245,240,232,.5)" }}> cal</span>
+                                  </div>
+                                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "rgba(245,240,232,.6)", backdropFilter: "blur(8px)" }}>{isOpen ? "▲" : "▼"}</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Body */}
+                            <div style={{ padding: "12px 16px" }}>
+                              {meal.description && <div style={{ fontSize: 12, color: "rgba(245,240,232,.45)", lineHeight: 1.6, marginBottom: 10 }}>{meal.description}</div>}
+                              <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                                {[["💪", meal.protein, "g P", SAGE], ["🌾", meal.carbs, "g C", SKY], ["🥑", meal.fat, "g F", ROSE]].map(([ic, v, u, c]) => (
+                                  <span key={u} style={{ fontSize: 12, color: "rgba(245,240,232,.4)" }}>{ic} <strong style={{ color: c, fontWeight: 700 }}>{v}</strong><span style={{ color: "rgba(245,240,232,.3)" }}>{u}</span></span>
+                                ))}
+                              </div>
+                              {isOpen && (
+                                <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,.06)", animation: "fadeUp .3s ease" }}>
+                                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(245,240,232,.25)", marginBottom: 10 }}>Ingredients</div>
+                                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                    {meal.ingredients?.map(ing => (
+                                      <span key={ing} style={{ fontSize: 11, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.09)", color: "rgba(245,240,232,.6)", padding: "4px 12px", borderRadius: 20 }}>{ing}</span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
                     })}
+
+                    {/* DEALS SECTION */}
+                    {mealPlan && (
+                      <div style={{ marginTop: 32 }}>
+                        {/* Section header with food photo bg */}
+                        <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", marginBottom: 16, height: 100 }}>
+                          <img src={FOOD_PHOTOS.deals} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          <div style={{ position: "absolute", inset: 0, background: "rgba(13,10,7,.7)", backdropFilter: "blur(2px)" }} />
+                          <div style={{ position: "absolute", inset: 0, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                            <div>
+                              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 700, color: CREAM }}>🛒 Shop Your Plan</div>
+                              <div style={{ fontSize: 11, color: "rgba(245,240,232,.4)", marginTop: 3 }}>{locationLabel ? `Near ${locationLabel}` : "Live deals for your ingredients"}</div>
+                            </div>
+                            <button onClick={fetchDeals} style={{ background: `${WARM}20`, border: `1px solid ${WARM}40`, color: WARM, borderRadius: 20, padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", backdropFilter: "blur(8px)" }}>
+                              {loading.deals ? "⏳" : "🔄 Refresh"}
+                            </button>
+                          </div>
+                        </div>
+
+                        {loading.deals ? <Spinner label="Finding deals near you…" /> :
+                          deals.length === 0 ? (
+                            <div onClick={fetchDeals} className="lift" style={{ border: `2px dashed ${WARM}25`, borderRadius: 20, padding: "28px", textAlign: "center", cursor: "pointer", background: `${WARM}05` }}>
+                              <div style={{ fontSize: 32, marginBottom: 10 }}>🛒</div>
+                              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 700, color: WARM, marginBottom: 6 }}>Find Deals for Your Ingredients</div>
+                              <div style={{ fontSize: 12, color: "rgba(245,240,232,.35)", marginBottom: 16 }}>Tap to search live grocery deals & stores near you</div>
+                              <div style={{ display: "inline-block", background: `linear-gradient(135deg, ${WARM}, ${WARM2})`, color: DARK, padding: "10px 24px", borderRadius: 20, fontSize: 13, fontWeight: 700 }}>Search Now</div>
+                            </div>
+                          ) : (
+                            <>
+                              {/* Deal cards grid */}
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+                                {deals.slice(0, 6).map((d, i) => {
+                                  const catColor = { protein: SAGE, produce: "#a5d6a7", pantry: WARM, specialty: ROSE };
+                                  const catIcon = { protein: "🥩", produce: "🥦", specialty: "🌏", pantry: "🥫" };
+                                  const color = catColor[d.category] || WARM;
+                                  return (
+                                    <div key={i} className="lift" style={{ background: "rgba(255,255,255,.04)", border: `1px solid ${color}20`, borderRadius: 16, overflow: "hidden", backdropFilter: "blur(12px)" }}>
+                                      <div style={{ height: 4, background: `linear-gradient(90deg, ${color}, ${color}80)` }} />
+                                      <div style={{ padding: "12px 14px" }}>
+                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                                          <span style={{ fontSize: 20 }}>{catIcon[d.category] || "🛒"}</span>
+                                          <span style={{ fontSize: 10, fontWeight: 700, background: "rgba(129,199,132,.12)", color: SAGE, border: "1px solid rgba(129,199,132,.25)", padding: "2px 8px", borderRadius: 20 }}>{d.savings}</span>
+                                        </div>
+                                        <div style={{ fontSize: 10, color: "rgba(245,240,232,.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>{d.store}</div>
+                                        <div style={{ fontSize: 13, fontWeight: 600, color: CREAM, marginBottom: 8, lineHeight: 1.3 }}>{d.item}</div>
+                                        <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: WARM, marginBottom: 6 }}>{d.price}</div>
+                                        <div style={{ fontSize: 11, color: "rgba(245,240,232,.35)", lineHeight: 1.5 }}>💡 {d.tip}</div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Nearby stores */}
+                              <div style={{ background: `${SKY}06`, border: `1px solid ${SKY}18`, borderRadius: 18, padding: "16px 18px", marginBottom: 12, backdropFilter: "blur(12px)" }}>
+                                <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontWeight: 700, color: CREAM, marginBottom: 14 }}>
+                                  🏪 Nearby Stores for {eth()?.label} Ingredients
+                                </div>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                                  {[
+                                    { name: "H Mart", type: "International", emoji: "🏪", color: WARM },
+                                    { name: "Whole Foods", type: "Organic", emoji: "🌿", color: SAGE },
+                                    { name: "Walmart", type: "Budget staples", emoji: "🛒", color: SKY },
+                                    { name: "Trader Joe's", type: "Affordable organic", emoji: "🌻", color: WARM2 },
+                                    { name: "Costco", type: "Bulk proteins", emoji: "📦", color: ROSE },
+                                    { name: "Ethnic market", type: `${eth()?.label} authentic`, emoji: "🌍", color: WARM },
+                                  ].map((store, i) => (
+                                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", background: "rgba(255,255,255,.03)", border: `1px solid ${store.color}15`, borderRadius: 12 }}>
+                                      <span style={{ fontSize: 16 }}>{store.emoji}</span>
+                                      <div>
+                                        <div style={{ fontSize: 12, fontWeight: 700, color: CREAM }}>{store.name}</div>
+                                        <div style={{ fontSize: 10, color: "rgba(245,240,232,.3)" }}>{store.type}</div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                                {locationLabel && <div style={{ marginTop: 12, fontSize: 10, color: "rgba(245,240,232,.2)" }}>📍 {locationLabel} · Coordinates never stored</div>}
+                              </div>
+
+                              {/* Shopping list preview */}
+                              <div style={{ background: `${WARM}07`, border: `1px solid ${WARM}18`, borderRadius: 16, padding: "14px 16px", backdropFilter: "blur(12px)" }}>
+                                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: WARM, marginBottom: 10 }}>📋 Today's Shopping List</div>
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                  {groceryList.slice(0, 12).map(item => (
+                                    <span key={item} style={{ fontSize: 11, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.09)", color: "rgba(245,240,232,.6)", padding: "4px 11px", borderRadius: 20 }}>{item}</span>
+                                  ))}
+                                  {groceryList.length > 12 && (
+                                    <span style={{ fontSize: 11, background: `${WARM}15`, border: `1px solid ${WARM}30`, color: WARM, padding: "4px 11px", borderRadius: 20, fontWeight: 700 }}>+{groceryList.length - 12} more in List tab</span>
+                                  )}
+                                </div>
+                              </div>
+                            </>
+                          )}
+                      </div>
+                    )}
                   </>
                 )}
               </>
             )}
 
+            {/* MACROS TAB */}
             {tab === "macros" && (
               <>
-                {loading.macros ? <Spinner label="Analyzing…" /> : macros ? (
+                {loading.macros ? <Spinner label="Calculating your nutrition targets…" /> : macros ? (
                   <>
                     <SafetyBanner warnings={safetyWarnings} />
                     <MedDisclaimer />
-                    <Card style={{ marginBottom: 14 }} glow={G}>
-                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,.3)", marginBottom: 14 }}>Daily Macro Targets</div>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 10 }}>
-                        {[["🔥 Calories", macros.calories, "", A], ["💪 Protein", macros.protein_g, "g", G], ["🌾 Carbs", macros.carbs_g, "g", B], ["🥑 Fat", macros.fat_g, "g", "#ff6b9d"]].map(([l, v, u, c]) => <div key={l} style={{ background: `${c}0a`, border: `1px solid ${c}20`, borderRadius: 12, padding: "14px 16px" }}><div style={{ fontSize: 11, color: "rgba(255,255,255,.4)", marginBottom: 4 }}>{l}</div><div style={{ fontFamily: "'Syne',sans-serif", fontSize: 26, fontWeight: 700, color: c }}>{v}<span style={{ fontSize: 13 }}>{u}</span></div></div>)}
+                    {/* Macro cards */}
+                    <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, marginBottom: 16, color: CREAM }}>Daily Targets</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+                      {[["🔥", "Calories", macros.calories, "", WARM], ["💪", "Protein", macros.protein_g, "g", SAGE], ["🌾", "Carbs", macros.carbs_g, "g", SKY], ["🥑", "Fat", macros.fat_g, "g", ROSE]].map(([icon, l, v, u, c]) => (
+                        <div key={l} style={{ background: `${c}08`, border: `1px solid ${c}20`, borderRadius: 20, padding: "18px 16px", backdropFilter: "blur(12px)" }}>
+                          <div style={{ fontSize: 22, marginBottom: 8 }}>{icon}</div>
+                          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 700, color: c }}>{v}<span style={{ fontSize: 14 }}>{u}</span></div>
+                          <div style={{ fontSize: 11, color: "rgba(245,240,232,.35)", letterSpacing: 1, marginTop: 4 }}>{l}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ background: `${SAGE}08`, border: `1px solid ${SAGE}20`, borderRadius: 16, padding: "13px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 18 }}>🌿</span>
+                      <div><span style={{ fontSize: 12, color: "rgba(245,240,232,.45)" }}>Fiber target: </span><strong style={{ fontSize: 14, color: SAGE }}>{macros.fiber_g}g/day</strong></div>
+                    </div>
+                    <div style={{ fontSize: 11, color: "rgba(245,240,232,.2)", marginBottom: 20, lineHeight: 1.6 }}>Calculated using Mifflin-St Jeor BMR formula with AMDR ranges. Verify with a registered dietitian.</div>
+
+                    {micros?.ethnicity_note && (
+                      <div style={{ background: `${WARM}08`, border: `1px solid ${WARM}20`, borderRadius: 18, padding: "16px", marginBottom: 16 }}>
+                        <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                          <span style={{ fontSize: 26 }}>{eth()?.emoji}</span>
+                          <div>
+                            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: WARM, marginBottom: 6 }}>Cultural Nutrition Note</div>
+                            <div style={{ fontSize: 13, color: "rgba(245,240,232,.65)", lineHeight: 1.7 }}>{micros.ethnicity_note}</div>
+                          </div>
+                        </div>
                       </div>
-                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,.06)", fontSize: 13, color: "rgba(255,255,255,.5)" }}>🌿 Fiber: <strong style={{ color: "rgba(255,255,255,.85)" }}>{macros.fiber_g}g/day</strong></div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,.25)", marginTop: 8 }}>Calculated using Mifflin-St Jeor BMR formula with AMDR macronutrient ranges. Verify with a registered dietitian.</div>
-                    </Card>
-                    {micros?.ethnicity_note && <Card style={{ marginBottom: 14, background: `${A}07`, borderColor: `${A}20` }}><div style={{ display: "flex", gap: 12 }}><span style={{ fontSize: 22 }}>{eth()?.emoji}</span><div><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: A, marginBottom: 5 }}>Cultural Nutrition Note</div><div style={{ fontSize: 13, color: "rgba(255,255,255,.7)", lineHeight: 1.6 }}>{micros.ethnicity_note}</div></div></div></Card>}
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,.3)", marginBottom: 10 }}>Key Micronutrients</div>
-                    {micros?.micros?.map((m, i) => <Card key={i} style={{ marginBottom: 10 }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}><div style={{ fontWeight: 600, fontSize: 15 }}>{m.name}</div><Tag color={B}>{m.target}</Tag></div><div style={{ fontSize: 12, color: "rgba(255,255,255,.5)", lineHeight: 1.5, marginBottom: 8 }}>{m.reason}</div><div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{m.foods?.map(f => <span key={f} style={{ fontSize: 11, background: `${G}10`, border: `1px solid ${G}20`, color: G, padding: "3px 9px", borderRadius: 20 }}>{f}</span>)}</div></Card>)}
+                    )}
+
+                    <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, marginBottom: 12, color: CREAM }}>Key Micronutrients</div>
+                    {micros?.micros?.map((m, i) => (
+                      <Card key={i} style={{ marginBottom: 10 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                          <div style={{ fontWeight: 700, fontSize: 15, color: CREAM }}>{m.name}</div>
+                          <Tag color={SKY}>{m.target}</Tag>
+                        </div>
+                        <div style={{ fontSize: 12, color: "rgba(245,240,232,.45)", lineHeight: 1.6, marginBottom: 10 }}>{m.reason}</div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                          {m.foods?.map(f => <span key={f} style={{ fontSize: 11, background: `${SAGE}10`, border: `1px solid ${SAGE}20`, color: SAGE, padding: "3px 10px", borderRadius: 20 }}>{f}</span>)}
+                        </div>
+                      </Card>
+                    ))}
                   </>
                 ) : <Spinner label="Calculating…" />}
               </>
             )}
 
+            {/* DEALS TAB */}
             {tab === "deals" && (
               <>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}><div style={{ fontFamily: "'Syne',sans-serif", fontSize: 24, fontWeight: 800 }}>LIVE DEALS</div><button onClick={fetchDeals} style={{ background: `${G}18`, border: `1px solid ${G}30`, color: G, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>🔄 Refresh</button></div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,.4)", marginBottom: 18 }}>{locationLabel ? `Near ${locationLabel} (city-level only, coords discarded)` : "Deals for your plan ingredients"}</div>
-                {loading.deals ? <Spinner label="Searching deals…" /> : deals.map((d, i) => (
-                  <Card key={i} style={{ marginBottom: 10, display: "flex", gap: 14, alignItems: "flex-start" }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: `${catColor[d.category] || G}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{d.category === "protein" ? "🥩" : d.category === "produce" ? "🥦" : d.category === "specialty" ? "🌏" : "🥫"}</div>
-                    <div style={{ flex: 1 }}><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(255,255,255,.3)", marginBottom: 2 }}>{d.store}</div><div style={{ fontWeight: 600, fontSize: 14, marginBottom: 5 }}>{d.item}</div><Tag color={catColor[d.category] || G}>{d.tag}</Tag><div style={{ display: "flex", gap: 10, alignItems: "center", margin: "7px 0" }}><span style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 700, color: A }}>{d.price}</span><span style={{ fontSize: 11, fontWeight: 700, background: "rgba(80,220,120,.1)", color: "#50dc78", border: "1px solid rgba(80,220,120,.2)", padding: "2px 8px", borderRadius: 20 }}>{d.savings}</span></div><div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", lineHeight: 1.5 }}>💡 {d.tip}</div></div>
-                  </Card>
+                {/* Full-width hero photo */}
+                <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", marginBottom: 16, height: 160 }}>
+                  <img src={FOOD_PHOTOS.deals} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "rgba(13,10,7,.6)" }} />
+                  <div style={{ position: "absolute", inset: 0, padding: "20px 18px", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+                    <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 26, fontWeight: 700, color: CREAM, marginBottom: 4 }}>Live Grocery Deals</div>
+                    <div style={{ fontSize: 12, color: "rgba(245,240,232,.45)" }}>{locationLabel ? `Near ${locationLabel} · coords never stored` : "For your meal plan ingredients"}</div>
+                  </div>
+                  <button onClick={fetchDeals} style={{ position: "absolute", top: 16, right: 16, background: `${WARM}20`, border: `1px solid ${WARM}40`, color: WARM, borderRadius: 20, padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", backdropFilter: "blur(8px)" }}>
+                    {loading.deals ? "⏳" : "🔄 Refresh"}
+                  </button>
+                </div>
+                {loading.deals ? <Spinner label="Searching deals…" /> : (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    {deals.map((d, i) => {
+                      const catColor = { protein: SAGE, produce: "#a5d6a7", pantry: WARM, specialty: ROSE };
+                      const catIcon = { protein: "🥩", produce: "🥦", specialty: "🌏", pantry: "🥫" };
+                      const color = catColor[d.category] || WARM;
+                      return (
+                        <div key={i} className="lift" style={{ background: "rgba(255,255,255,.04)", border: `1px solid ${color}20`, borderRadius: 16, overflow: "hidden", backdropFilter: "blur(12px)" }}>
+                          <div style={{ height: 4, background: `linear-gradient(90deg, ${color}, ${color}80)` }} />
+                          <div style={{ padding: "14px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                              <span style={{ fontSize: 22 }}>{catIcon[d.category] || "🛒"}</span>
+                              <span style={{ fontSize: 10, fontWeight: 700, background: "rgba(129,199,132,.12)", color: SAGE, border: "1px solid rgba(129,199,132,.25)", padding: "2px 8px", borderRadius: 20 }}>{d.savings}</span>
+                            </div>
+                            <div style={{ fontSize: 10, color: "rgba(245,240,232,.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>{d.store}</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: CREAM, lineHeight: 1.3, marginBottom: 8 }}>{d.item}</div>
+                            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: WARM, marginBottom: 8 }}>{d.price}</div>
+                            <div style={{ fontSize: 11, color: "rgba(245,240,232,.3)", lineHeight: 1.5 }}>💡 {d.tip}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* GROCERY TAB */}
+            {tab === "grocery" && (
+              <>
+                {/* Hero photo */}
+                <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", marginBottom: 16, height: 120 }}>
+                  <img src={FOOD_PHOTOS.grocery || FOOD_PHOTOS.deals} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "rgba(13,10,7,.65)" }} />
+                  <div style={{ position: "absolute", inset: 0, padding: "16px 18px", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+                    <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: CREAM }}>Grocery List</div>
+                    <div style={{ fontSize: 11, color: "rgba(245,240,232,.35)" }}>Stored locally · Never shared</div>
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "rgba(245,240,232,.35)", marginBottom: 8 }}>
+                    <span>Progress</span>
+                    <span style={{ color: WARM, fontWeight: 700 }}>{Object.values(checked).filter(Boolean).length}/{groceryList.length} items</span>
+                  </div>
+                  <div style={{ height: 5, background: "rgba(255,255,255,.06)", borderRadius: 10, overflow: "hidden" }}>
+                    <div style={{ height: "100%", background: `linear-gradient(90deg, ${WARM}, ${WARM2})`, borderRadius: 10, width: `${groceryList.length ? (Object.values(checked).filter(Boolean).length / groceryList.length) * 100 : 0}%`, transition: "width .5s cubic-bezier(.22,1,.36,1)", boxShadow: `0 0 10px ${WARM}40` }} />
+                  </div>
+                </div>
+
+                {groceryList.map(item => (
+                  <div key={item} onClick={() => setChecked(c => ({ ...c, [item]: !c[item] }))}
+                    className="lift"
+                    style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderRadius: 14, border: `1px solid ${checked[item] ? WARM + "25" : "rgba(255,255,255,.06)"}`, background: checked[item] ? `${WARM}05` : "rgba(255,255,255,.02)", marginBottom: 8, cursor: "pointer", opacity: checked[item] ? .45 : 1, transition: "all .25s" }}>
+                    <div style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${checked[item] ? WARM : "rgba(255,255,255,.18)"}`, background: checked[item] ? `linear-gradient(135deg, ${WARM}, ${WARM2})` : "transparent", transition: "all .25s", boxShadow: checked[item] ? `0 0 10px ${WARM}30` : "none" }}>
+                      {checked[item] && <span style={{ color: DARK, fontSize: 11, fontWeight: 900 }}>✓</span>}
+                    </div>
+                    <span style={{ fontSize: 14, fontWeight: 500, textDecoration: checked[item] ? "line-through" : "none", color: checked[item] ? "rgba(245,240,232,.35)" : CREAM }}>{item}</span>
+                  </div>
                 ))}
               </>
             )}
 
-            {tab === "grocery" && (
-              <>
-                <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 24, fontWeight: 800, marginBottom: 6 }}>GROCERY LIST</div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,.4)", marginBottom: 18 }}>Stored locally on your device only</div>
-                <div style={{ marginBottom: 20 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "rgba(255,255,255,.4)", marginBottom: 8 }}><span>Progress</span><span style={{ color: G }}>{Object.values(checked).filter(Boolean).length}/{groceryList.length} items</span></div><div style={{ height: 4, background: "rgba(255,255,255,.08)", borderRadius: 4 }}><div style={{ height: "100%", background: G, borderRadius: 4, width: `${groceryList.length ? (Object.values(checked).filter(Boolean).length / groceryList.length) * 100 : 0}%`, transition: "width .4s" }} /></div></div>
-                {groceryList.map(item => <div key={item} onClick={() => setChecked(c => ({ ...c, [item]: !c[item] }))} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,.06)", background: "rgba(255,255,255,.02)", marginBottom: 8, cursor: "pointer", opacity: checked[item] ? .35 : 1, textDecoration: checked[item] ? "line-through" : "none", transition: "all .2s" }}><div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${checked[item] ? G : "rgba(255,255,255,.2)"}`, background: checked[item] ? G : "transparent", transition: "all .2s" }}>{checked[item] && <span style={{ color: "#07080f", fontSize: 12, fontWeight: 700 }}>✓</span>}</div><span style={{ fontSize: 14, fontWeight: 500 }}>{item}</span></div>)}
-              </>
-            )}
-
+            {/* COMPLIANCE TAB */}
             {tab === "compliance" && <CompliancePanel onDeleteData={handleDeleteData} />}
           </div>
 
-          {/* Chat FAB */}
-          <button onClick={() => setChatOpen(o => !o)} style={{ position: "fixed", bottom: 26, right: 22, width: 56, height: 56, borderRadius: "50%", border: "none", cursor: "pointer", zIndex: 50, background: chatOpen ? "rgba(255,255,255,.1)" : G, color: chatOpen ? "rgba(255,255,255,.8)" : "#07080f", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: chatOpen ? "none" : `0 0 0 0 ${G}88`, animation: chatOpen ? "none" : "pulse 2.5s infinite", transition: "all .3s cubic-bezier(.22,1,.36,1)" }}>
+          {/* ━━ Chat FAB ━━ */}
+          <button onClick={() => setChatOpen(o => !o)}
+            style={{
+              position: "fixed", bottom: 26, right: 22, width: 58, height: 58,
+              borderRadius: "50%", border: "none", cursor: "pointer", zIndex: 50,
+              background: chatOpen ? "rgba(255,255,255,.1)" : `linear-gradient(135deg, ${WARM}, ${WARM2})`,
+              color: chatOpen ? "rgba(245,240,232,.7)" : DARK,
+              fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: chatOpen ? "none" : `0 8px 30px ${WARM}50`,
+              animation: chatOpen ? "none" : "pulse 2.5s infinite",
+              transition: "all .35s cubic-bezier(.22,1,.36,1)",
+            }}>
             {chatOpen ? "✕" : "⚡"}
           </button>
 
-          {/* Chat Panel */}
+          {/* ━━ Chat Panel ━━ */}
           {chatOpen && (
-            <div style={{ position: "fixed", bottom: 96, right: 14, left: 14, maxWidth: 480, margin: "0 auto", height: "66vh", maxHeight: 540, background: "rgba(9,10,18,.97)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 24, zIndex: 49, display: "flex", flexDirection: "column", boxShadow: `0 30px 80px rgba(0,0,0,.7), 0 0 0 1px ${G}18`, overflow: "hidden", animation: "slideUp .35s cubic-bezier(.22,1,.36,1)" }}>
+            <div style={{
+              position: "fixed", bottom: 96, right: 14, left: 14, maxWidth: 480, margin: "0 auto",
+              height: "66vh", maxHeight: 540,
+              background: "rgba(13,10,7,.96)", border: "1px solid rgba(255,255,255,.1)",
+              borderRadius: 24, zIndex: 49, display: "flex", flexDirection: "column",
+              boxShadow: `0 30px 80px rgba(0,0,0,.8), 0 0 0 1px ${WARM}15`,
+              overflow: "hidden", animation: "slideUp .35s cubic-bezier(.22,1,.36,1)",
+              backdropFilter: "blur(32px)",
+            }}>
+              {/* Chat header */}
               <div style={{ padding: "13px 16px", borderBottom: "1px solid rgba(255,255,255,.07)", display: "flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,.02)" }}>
-                <div style={{ width: 34, height: 34, borderRadius: "50%", background: `${G}20`, border: `1px solid ${G}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>⚡</div>
-                <div style={{ flex: 1 }}><div style={{ fontFamily: "'Syne',sans-serif", fontSize: 14, fontWeight: 700 }}>FuelCoach AI</div><div style={{ fontSize: 10, color: G, display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 5, height: 5, borderRadius: "50%", background: G, display: "inline-block" }} /> Safety-screened · No PII sent · Not medical advice</div></div>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: `linear-gradient(135deg, ${WARM}30, ${WARM2}20)`, border: `1px solid ${WARM}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>⚡</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontWeight: 700, color: CREAM }}>FuelCoach AI</div>
+                  <div style={{ fontSize: 10, color: WARM, display: "flex", alignItems: "center", gap: 5 }}>
+                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: SAGE, display: "inline-block", boxShadow: `0 0 6px ${SAGE}` }} />
+                    Safety-screened · No PII sent · Not medical advice
+                  </div>
+                </div>
               </div>
+
+              {/* Messages */}
               <div style={{ flex: 1, overflowY: "auto", padding: "14px 12px 8px", display: "flex", flexDirection: "column" }}>
-                {chatHistory.length === 0 && !chatLoading && <div style={{ textAlign: "center", color: "rgba(255,255,255,.3)", fontSize: 13, margin: "auto" }}><div style={{ fontSize: 30, marginBottom: 8 }}>⚡</div>Ask about your plan, meals, macros, or deals!</div>}
+                {chatHistory.length === 0 && !chatLoading && (
+                  <div style={{ textAlign: "center", color: "rgba(245,240,232,.25)", fontSize: 13, margin: "auto" }}>
+                    <div style={{ fontSize: 32, marginBottom: 10 }}>⚡</div>
+                    Ask about your plan, meals, macros, or deals!
+                  </div>
+                )}
                 {chatHistory.map((msg, i) => <ChatBubble key={i} msg={msg} onChip={text => sendChat(text)} />)}
-                {chatLoading && <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}><div style={{ width: 30, height: 30, borderRadius: "50%", background: `${G}20`, border: `1px solid ${G}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>⚡</div><div style={{ display: "flex", gap: 5, padding: "11px 14px", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: "4px 16px 16px 16px" }}>{[0, 1, 2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,.35)", animation: `bounce 1.2s ${i * .2}s infinite ease-in-out` }} />)}</div></div>}
+                {chatLoading && (
+                  <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: "50%", background: `${WARM}20`, border: `1px solid ${WARM}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>⚡</div>
+                    <div style={{ display: "flex", gap: 5, padding: "11px 14px", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.09)", borderRadius: "4px 16px 16px 16px" }}>
+                      {[0, 1, 2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: WARM, animation: `bounce 1.2s ${i * .2}s infinite ease-in-out`, opacity: .6 }} />)}
+                    </div>
+                  </div>
+                )}
                 <div ref={chatEndRef} />
               </div>
-              {chatHistory.length <= 1 && !chatLoading && <div style={{ padding: "0 12px 8px", display: "flex", gap: 6, overflowX: "auto" }}>{["Swap a dinner", "Best snack ideas", "Explain my macros", "Find deals near me", "Vegetarian options"].map(s => <button key={s} onClick={() => sendChat(s)} style={{ flexShrink: 0, padding: "5px 12px", borderRadius: 20, border: "1px solid rgba(255,255,255,.1)", background: "transparent", color: "rgba(255,255,255,.45)", fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>{s}</button>)}</div>}
+
+              {/* Quick chips */}
+              {chatHistory.length <= 1 && !chatLoading && (
+                <div style={{ padding: "0 12px 8px", display: "flex", gap: 6, overflowX: "auto" }}>
+                  {["Swap a dinner", "Best snack ideas", "Explain my macros", "Find deals", "Vegetarian options"].map(s => (
+                    <button key={s} onClick={() => sendChat(s)} style={{ flexShrink: 0, padding: "6px 14px", borderRadius: 20, border: `1px solid rgba(255,255,255,.1)`, background: "transparent", color: "rgba(245,240,232,.4)", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>{s}</button>
+                  ))}
+                </div>
+              )}
+
+              {/* Input */}
               <div style={{ padding: "10px 12px", borderTop: "1px solid rgba(255,255,255,.07)", display: "flex", gap: 8, alignItems: "flex-end" }}>
-                <textarea value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(chatInput); } }} placeholder="Ask about your plan, swaps, deals…" rows={1} style={{ flex: 1, background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 12, padding: "9px 13px", color: "#eef0f5", fontFamily: "'DM Sans',sans-serif", fontSize: 13, resize: "none", maxHeight: 80, lineHeight: 1.5 }} />
-                <button onClick={() => sendChat(chatInput)} disabled={!chatInput.trim() || chatLoading} style={{ width: 40, height: 40, borderRadius: 10, border: "none", background: chatInput.trim() && !chatLoading ? G : "rgba(255,255,255,.07)", color: chatInput.trim() && !chatLoading ? "#07080f" : "rgba(255,255,255,.3)", fontSize: 16, cursor: chatInput.trim() && !chatLoading ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .2s" }}>↑</button>
+                <textarea value={chatInput} onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(chatInput); } }}
+                  placeholder="Ask about your plan, swaps, deals…"
+                  rows={1} style={{ flex: 1, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.09)", borderRadius: 14, padding: "10px 14px", color: CREAM, fontSize: 13, resize: "none", maxHeight: 80, lineHeight: 1.5 }} />
+                <button onClick={() => sendChat(chatInput)} disabled={!chatInput.trim() || chatLoading}
+                  style={{ width: 42, height: 42, borderRadius: 12, border: "none", background: chatInput.trim() && !chatLoading ? `linear-gradient(135deg, ${WARM}, ${WARM2})` : "rgba(255,255,255,.06)", color: chatInput.trim() && !chatLoading ? DARK : "rgba(245,240,232,.2)", fontSize: 16, cursor: chatInput.trim() && !chatLoading ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all .25s" }}>↑</button>
               </div>
             </div>
           )}
