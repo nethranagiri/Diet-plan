@@ -248,6 +248,22 @@ const FOOD_PHOTOS = {
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// APP DATA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const ETHNICITIES = [
+  { id: "west-african",     label: "West African",     emoji: "🌍", staples: ["plantain","yam","egusi","black-eyed peas","tilapia","moringa","palm oil"] },
+  { id: "east-asian",       label: "East Asian",       emoji: "🍜", staples: ["brown rice","tofu","edamame","bok choy","miso","salmon","shiitake"] },
+  { id: "south-asian",      label: "South Asian",      emoji: "🍛", staples: ["lentils","chickpeas","turmeric","paneer","basmati rice","fenugreek"] },
+  { id: "mediterranean",    label: "Mediterranean",    emoji: "🫒", staples: ["olive oil","feta","hummus","quinoa","sardines","eggplant","pomegranate"] },
+  { id: "latin-american",   label: "Latin American",   emoji: "🌮", staples: ["black beans","corn","avocado","sweet potato","cilantro","lean beef"] },
+  { id: "middle-eastern",   label: "Middle Eastern",   emoji: "🧆", staples: ["tahini","za'atar","bulgur","lamb","labneh","sumac","freekeh"] },
+  { id: "caribbean",        label: "Caribbean",        emoji: "🌴", staples: ["coconut","callaloo","jerk seasoning","breadfruit","saltfish","ackee"] },
+  { id: "eastern-european", label: "Eastern European", emoji: "🥗", staples: ["buckwheat","kefir","beets","rye bread","herring","sauerkraut"] },
+];
+
+const GOALS = ["Weight Loss", "Muscle Gain", "Maintenance", "Athletic Performance", "Heart Health"];
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // DESIGN TOKENS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const WARM = "#ffb74d";
