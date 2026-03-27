@@ -1134,7 +1134,7 @@ export default function FuelPlanPro() {
                     <div style={{ fontSize: 64, marginBottom: 20 }}>🍽️</div>
                     <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 700, color: "#f5f0e8", marginBottom: 10, textAlign: "center" }}>Let’s Build Your Plan</div>
                     <div style={{ fontSize: 14, color: "rgba(245,240,232,.45)", marginBottom: 32, lineHeight: 1.7, textAlign: "center", maxWidth: 280 }}>Tell us about your heritage and goals to get a personalised AI meal plan</div>
-                    <button onClick={() => { setStep("profile"); setTab("plan"); }} style={{ background: "linear-gradient(135deg, #ffb74d, #ff8a65)", color: "#0d0a07", border: "none", borderRadius: 16, padding: "16px 40px", fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 30px rgba(255,183,77,.4)", width: "100%", maxWidth: 320 }}>Get Started →</button>
+                    <button onClick={() => { setStep("profile"); setMealPlan(null); setMacros(null); }} style={{ background: "linear-gradient(135deg, #ffb74d, #ff8a65)", color: "#0d0a07", border: "none", borderRadius: 16, padding: "16px 40px", fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 30px rgba(255,183,77,.4)", width: "100%", maxWidth: 320 }}>Get Started →</button>
                     <div style={{ marginTop: 16, fontSize: 12, color: "rgba(245,240,232,.2)" }}>Takes about 30 seconds to generate</div>
                   </div>
                 ) : (
