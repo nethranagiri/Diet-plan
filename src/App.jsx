@@ -778,14 +778,20 @@ export default function FuelPlanPro() {
   const fileRef = useRef(null);
 
   useEffect(() => {
+    // Go to profile unless we have a complete saved plan
     const saved = Privacy.load();
-    if (saved) {
+    const m = Privacy.loadData("fp_macros");
+    const pl = Privacy.loadData("fp_mealplan");
+    if (saved && m && pl && Array.isArray(pl) && pl.length > 0) {
       setProfile(p => ({ ...p, ...saved, name: saved.displayName }));
-      const m = Privacy.loadData("fp_macros");
-      const pl = Privacy.loadData("fp_mealplan");
-      if (m) setMacros(m);
-      if (pl) { setMealPlan(pl); const ings = new Set(); pl.forEach(d => Object.values(d.meals).forEach(meal => meal.ingredients?.forEach(i => ings.add(i)))); setGrocery([...ings]); }
-      if (m && pl) setStep("plan");
+      setMacros(m);
+      setMealPlan(pl);
+      const ings = new Set();
+      pl.forEach(d => Object.values(d.meals).forEach(meal => meal.ingredients?.forEach(i => ings.add(i))));
+      setGrocery([...ings]);
+      setStep("plan");
+    } else {
+      setStep("profile");
     }
   }, []);
 
