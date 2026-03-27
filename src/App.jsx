@@ -890,7 +890,7 @@ export default function FuelPlanPro() {
     await generatePlan(data);
     const greeting = await callClaude([{ role: "user", content: `Warm 2-sentence welcome for new ${eth()?.label} ${profile.goal} plan. Mention one cultural staple. Under 35 words.` }], buildSystem());
     setCH([{ role: "assistant", content: greeting.trim(), chips: ["What to eat first?", "Swap a meal", "Explain my macros", "Find deals near me", "Snack ideas"] }]);
-    setChatOpen(true);
+    // Chat stays closed — user opens it manually
   };
 
   const sendChat = useCallback(async (text) => {
