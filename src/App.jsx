@@ -778,19 +778,32 @@ export default function FuelPlanPro() {
   const fileRef = useRef(null);
 
   useEffect(() => {
-    // Go to profile unless we have a complete saved plan
-    const saved = Privacy.load();
-    const m = Privacy.loadData("fp_macros");
-    const pl = Privacy.loadData("fp_mealplan");
-    if (saved && m && pl && Array.isArray(pl) && pl.length > 0) {
-      setProfile(p => ({ ...p, ...saved, name: saved.displayName }));
-      setMacros(m);
-      setMealPlan(pl);
-      const ings = new Set();
-      pl.forEach(d => Object.values(d.meals).forEach(meal => meal.ingredients?.forEach(i => ings.add(i))));
-      setGrocery([...ings]);
-      setStep("plan");
-    } else {
+    try {
+      const saved = Privacy.load();
+      const m = Privacy.loadData("fp_macros");
+      const pl = Privacy.loadData("fp_mealplan");
+      // Only go to plan if ALL data exists and is valid
+      if (
+        saved && m && pl &&
+        Array.isArray(pl) && pl.length > 0 &&
+        pl[0]?.meals?.breakfast && pl[0]?.meals?.lunch &&
+        pl[0]?.meals?.dinner
+      ) {
+        setProfile(p => ({ ...p, ...saved, name: saved.displayName }));
+        setMacros(m);
+        setMealPlan(pl);
+        const ings = new Set();
+        pl.forEach(d => Object.values(d.meals).forEach(meal => meal.ingredients?.forEach(i => ings.add(i))));
+        setGrocery([...ings]);
+        setStep("plan");
+      } else {
+        // Clear any partial data and go to profile
+        localStorage.removeItem("fp_mealplan");
+        localStorage.removeItem("fp_macros");
+        setStep("profile");
+      }
+    } catch(e) {
+      // Any error — reset to profile
       setStep("profile");
     }
   }, []);
@@ -1115,7 +1128,16 @@ export default function FuelPlanPro() {
             {/* PLAN TAB */}
             {tab === "plan" && (
               <>
-                {loading.plan || loading.macros ? <Spinner label="Building your culturally-rooted meal plan…" /> : (
+                {loading.plan || loading.macros ? <Spinner label="Building your culturally-rooted meal plan…" /> : !mealPlan ? (
+                  /* No plan yet — force redirect to profile immediately */
+                  <div style={{ minHeight: 400, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+                    <div style={{ fontSize: 64, marginBottom: 20 }}>🍽️</div>
+                    <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 700, color: "#f5f0e8", marginBottom: 10, textAlign: "center" }}>Let’s Build Your Plan</div>
+                    <div style={{ fontSize: 14, color: "rgba(245,240,232,.45)", marginBottom: 32, lineHeight: 1.7, textAlign: "center", maxWidth: 280 }}>Tell us about your heritage and goals to get a personalised AI meal plan</div>
+                    <button onClick={() => { setStep("profile"); setTab("plan"); }} style={{ background: "linear-gradient(135deg, #ffb74d, #ff8a65)", color: "#0d0a07", border: "none", borderRadius: 16, padding: "16px 40px", fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 30px rgba(255,183,77,.4)", width: "100%", maxWidth: 320 }}>Get Started →</button>
+                    <div style={{ marginTop: 16, fontSize: 12, color: "rgba(245,240,232,.2)" }}>Takes about 30 seconds to generate</div>
+                  </div>
+                ) : (
                   <>
                     <MedDisclaimer />
                     <SafetyBanner warnings={safetyWarnings} />
