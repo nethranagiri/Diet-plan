@@ -161,6 +161,7 @@ const Privacy = {
     gender: profile.gender,
     ethnicity: profile.ethnicity,
     goal: profile.goal,
+    diet: profile.diet || "non-vegetarian",
     budget: profile.budget,
     displayName: profile.name?.trim().split(" ")[0] || "User",
   }),
@@ -262,6 +263,17 @@ const ETHNICITIES = [
 ];
 
 const GOALS = ["Weight Loss", "Muscle Gain", "Maintenance", "Athletic Performance", "Heart Health"];
+
+const DIETARY_TYPES = [
+  { id: "non-vegetarian", label: "Non-Vegetarian", emoji: "🍗", desc: "Meat, fish & everything", restriction: "" },
+  { id: "vegetarian",     label: "Vegetarian",     emoji: "🥗", desc: "No meat or fish",        restriction: "vegetarian — no meat, poultry, or fish. Dairy and eggs are allowed." },
+  { id: "vegan",          label: "Vegan",           emoji: "🌱", desc: "No animal products",     restriction: "strictly vegan — absolutely no meat, fish, dairy, eggs, or honey." },
+  { id: "pescatarian",    label: "Pescatarian",     emoji: "🐟", desc: "Fish, no other meat",    restriction: "pescatarian — fish and seafood allowed, but no poultry or red meat." },
+  { id: "keto",           label: "Keto",            emoji: "🥑", desc: "Very low carb, high fat",restriction: "ketogenic — very low carb (under 30g net carbs/day), high fat, moderate protein. No grains, sugar, or starchy vegetables." },
+  { id: "halal",          label: "Halal",           emoji: "☪️",  desc: "Halal-certified only",  restriction: "halal — all meat must be halal-certified. No pork or alcohol-based ingredients." },
+  { id: "jain",           label: "Jain",            emoji: "🕊️",  desc: "No root vegetables",   restriction: "Jain vegetarian — no meat, fish, eggs, root vegetables (onion, garlic, potato, carrot, beetroot). Focus on above-ground vegetables, legumes, dairy." },
+  { id: "gluten-free",    label: "Gluten-Free",     emoji: "🌾",  desc: "No wheat or gluten",    restriction: "gluten-free — no wheat, barley, rye, or any gluten-containing ingredients." },
+];
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // DESIGN TOKENS
@@ -754,7 +766,7 @@ function ChatBubble({ msg, onChip }) {
 export default function FuelPlanPro() {
   const [consented, setConsented] = useState(Compliance.hasValidConsent);
   const [step, setStep] = useState("profile");
-  const [profile, setProfile] = useState({ name: "", age: "", weight: "", height: "", gender: "male", ethnicity: "", goal: "", budget: "moderate" });
+  const [profile, setProfile] = useState({ name: "", age: "", weight: "", height: "", gender: "male", ethnicity: "", goal: "", budget: "moderate", diet: "non-vegetarian" });
   const [healthBase64, setHB64] = useState(null);
   const [healthFile, setHFile] = useState(null);
   const [macros, setMacros] = useState(null);
@@ -807,9 +819,12 @@ export default function FuelPlanPro() {
   }, []);
 
   const eth = () => ETHNICITIES.find(e => e.id === profile.ethnicity);
+  const dietInfo = () => DIETARY_TYPES.find(d => d.id === (profile.diet || "non-vegetarian"));
+  const dietRestriction = () => dietInfo()?.restriction || "";
   const buildSystem = () => {
     const ctx = Privacy.buildAPIContext(profile, macros);
-    return `User context (anonymized): Age bracket: ${ctx.ageBracket}, BMI: ${ctx.bmiCategory}, Gender: ${ctx.gender}, Heritage: ${ETHNICITIES.find(e => e.id === ctx.ethnicity)?.label || "not set"}, Goal: ${ctx.goal}, Budget: ${ctx.budget}. Staples: ${eth()?.staples?.join(", ") || "general"}. ${ctx.macros ? `Macros: ${ctx.macros}.` : ""} Be warm, concise, culturally-aware, safety-conscious.`;
+    const diet = dietInfo();
+    return `User context (anonymized): Age bracket: ${ctx.ageBracket}, BMI: ${ctx.bmiCategory}, Gender: ${ctx.gender}, Heritage: ${ETHNICITIES.find(e => e.id === ctx.ethnicity)?.label || "not set"}, Goal: ${ctx.goal}, Diet: ${diet?.label || "Non-Vegetarian"}, Budget: ${ctx.budget}. Staples: ${eth()?.staples?.join(", ") || "general"}. ${ctx.macros ? `Macros: ${ctx.macros}.` : ""} Be warm, concise, culturally-aware, safety-conscious.`;
   };
 
   const getLocation = () => {
@@ -862,8 +877,10 @@ export default function FuelPlanPro() {
   const generatePlan = useCallback(async (macroData) => {
     const m = macroData?.macros || macros; if (!m) return;
     setLoading(l => ({ ...l, plan: true }));
-    Compliance.auditLog("plan_generated", `heritage:${profile.ethnicity},goal:${profile.goal}`);
-    const data = await callJSON([{ role: "user", content: `3-day ${profile.goal} meal plan for ${eth()?.label} heritage. Macros/day: ${m.calories}cal, ${m.protein_g}g P, ${m.carbs_g}g C, ${m.fat_g}g F. Staples: ${eth()?.staples?.join(", ")}. Return JSON: {"days":[{"day":"Monday","meals":{"breakfast":{"name":string,"description":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string]},"lunch":same,"dinner":same,"snack":same}}]} for 3 days.` }], `World-class ${eth()?.label} cuisine nutritionist. Return ONLY valid JSON.`, 4000);
+    Compliance.auditLog("plan_generated", `heritage:${profile.ethnicity},goal:${profile.goal},diet:${profile.diet}`);
+    const dr = dietRestriction();
+    const dietClause = dr ? ` Dietary requirement: ${dr}` : "";
+    const data = await callJSON([{ role: "user", content: `3-day ${profile.goal} meal plan for ${eth()?.label} heritage.${dietClause} Macros/day: ${m.calories}cal, ${m.protein_g}g P, ${m.carbs_g}g C, ${m.fat_g}g F. Staples: ${eth()?.staples?.join(", ")}. Return JSON: {"days":[{"day":"Monday","meals":{"breakfast":{"name":string,"description":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string]},"lunch":{"name":string,"description":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string]},"dinner":{"name":string,"description":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string]},"snack":{"name":string,"description":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string]}}}]} for 3 days.` }], `World-class ${eth()?.label} cuisine nutritionist. Return ONLY valid JSON. No markdown, no extra text.`, 4000);
     if (data?.days) {
       setMealPlan(data.days); Privacy.saveData("fp_mealplan", data.days);
       const ings = new Set(); data.days.forEach(d => Object.values(d.meals).forEach(meal => meal.ingredients?.forEach(i => ings.add(i)))); setGrocery([...ings]);
@@ -906,35 +923,138 @@ export default function FuelPlanPro() {
     // Chat stays closed — user opens it manually
   };
 
+  // ── Action executor: called by intent classifier with structured action ──────
+  const executeAction = useCallback(async (action, params, originalText) => {
+    const m = macros;
+    const planPrompt = (days, dietOverride) => {
+      const d = dietOverride || dietInfo();
+      const dr = d?.restriction || "";
+      return `${days}-day ${params?.goal || profile.goal} meal plan for ${eth()?.label} heritage.${dr ? ` Dietary requirement: ${dr}` : ""} Macros/day: ${m.calories}cal, ${m.protein_g}g P, ${m.carbs_g}g C, ${m.fat_g}g F. Staples: ${eth()?.staples?.join(", ")}. Return JSON: {"days":[{"day":"Day name","meals":{"breakfast":{"name":string,"description":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string]},"lunch":{"name":string,"description":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string]},"dinner":{"name":string,"description":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string]},"snack":{"name":string,"description":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string]}}}]} for all ${days} days.`;
+    };
+    const savePlan = (days) => {
+      setMealPlan(days); Privacy.saveData("fp_mealplan", days);
+      const ings = new Set(); days.forEach(d => Object.values(d.meals).forEach(meal => meal.ingredients?.forEach(i => ings.add(i)))); setGrocery([...ings]);
+      setActiveDay(0); setTab("plan");
+    };
+
+    switch (action) {
+
+      case "REGENERATE_PLAN": {
+        const days = params?.days || 3;
+        const dietOverride = params?.diet ? DIETARY_TYPES.find(d => d.id === params.diet) : null;
+        if (dietOverride) { setProfile(p => ({ ...p, diet: dietOverride.id })); Privacy.saveData("fp_profile_safe", { ...Privacy.load(), diet: dietOverride.id }); }
+        setCH(h => [...h, { role: "assistant", content: `🍽️ Regenerating your **${days}-day plan**${dietOverride ? ` as **${dietOverride.label}** ${dietOverride.emoji}` : ""}… give it ~20 seconds.`, chips: [] }]);
+        setLoading(l => ({ ...l, plan: true }));
+        const data = await callJSON([{ role: "user", content: planPrompt(days, dietOverride) }], `World-class ${eth()?.label} cuisine nutritionist. Return ONLY valid JSON. No markdown, no extra text.`, 4000);
+        setLoading(l => ({ ...l, plan: false }));
+        if (data?.days) {
+          savePlan(data.days);
+          setCH(h => [...h, { role: "assistant", content: `✅ Done! Your **${days}-day${dietOverride ? ` ${dietOverride.label}` : ""} plan** is ready in the Plan tab.`, chips: ["Show grocery list", "Find deals", "Swap a meal", "Change diet type"] }]);
+        } else {
+          setCH(h => [...h, { role: "assistant", content: `Something went wrong — please try again.`, chips: ["Try again"] }]);
+        }
+        return;
+      }
+
+      case "SWAP_MEAL": {
+        const mealType = params?.meal || "any meal";
+        setCH(h => [...h, { role: "assistant", content: `🔄 Finding a great swap for **${mealType}**…`, chips: [] }]);
+        const sw = await callJSON([{ role: "user", content: `Swap request: "${originalText}". Heritage: ${eth()?.label}, diet: ${dietInfo()?.label}, goal: ${profile.goal}. Meal to swap: ${mealType}. Return JSON: {"original":string,"name":string,"description":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string],"reason":string,"tip":string}` }], buildSystem(), 1000);
+        if (sw) {
+          setCH(h => [...h, { role: "assistant", content: `🔄 **Swap suggestion for ${mealType}:**\n\n**${sw.name}**\n${sw.description}\n\n${sw.reason}\n\n💪 ${sw.protein}g protein · 🌾 ${sw.carbs}g carbs · 🥑 ${sw.fat}g fat · 🔥 ${sw.cals} cal\n\n**Ingredients:** ${sw.ingredients?.join(", ")}\n\n💡 ${sw.tip}\n\n⚕️ Verify with a dietitian.`, chips: ["Apply this swap", "Try another swap", "Swap breakfast instead", "Swap dinner instead"] }]);
+        } else {
+          setCH(h => [...h, { role: "assistant", content: `Couldn't generate a swap — try being more specific, e.g. "swap my Monday lunch".`, chips: ["Swap breakfast", "Swap lunch", "Swap dinner"] }]);
+        }
+        return;
+      }
+
+      case "EXPLAIN_MACROS": {
+        const explanation = await callClaude([{ role: "user", content: `Explain my macros in plain language: ${macros?.calories} cal, ${macros?.protein_g}g protein, ${macros?.carbs_g}g carbs, ${macros?.fat_g}g fat. My goal is ${profile.goal}. Heritage: ${eth()?.label}. Keep it friendly and under 120 words. No medical claims.` }], buildSystem(), false, 1000);
+        setCH(h => [...h, { role: "assistant", content: explanation.trim(), chips: ["How do I hit my protein?", "Best carb sources for me", "Should I adjust my calories?", "Show my full macros"] }]);
+        return;
+      }
+
+      case "FIND_DEALS": {
+        setCH(h => [...h, { role: "assistant", content: `🛒 Searching for grocery deals near you…`, chips: [] }]);
+        await fetchDeals();
+        setTab("plan");
+        setCH(h => [...h, { role: "assistant", content: `✅ Found the best deals for your ingredients! Check the **Deals section** on the Plan tab.`, chips: ["Best protein deals", "Bulk buying tips", "Ethnic stores near me"] }]);
+        return;
+      }
+
+      case "RECIPE_DETAIL": {
+        const meal = params?.meal || originalText;
+        const recipe = await callClaude([{ role: "user", content: `Give a detailed recipe for: "${meal}". Heritage: ${eth()?.label}, diet: ${dietInfo()?.label}. Include: prep time, cook time, step-by-step instructions (numbered), and one pro tip. Keep under 200 words. No medical claims.` }], buildSystem(), false, 1000);
+        setCH(h => [...h, { role: "assistant", content: recipe.trim(), chips: ["Add to grocery list", "Find a simpler version", "Swap an ingredient", "Nutritional breakdown"] }]);
+        return;
+      }
+
+      case "GOAL_CHANGE": {
+        const newGoal = params?.goal;
+        if (newGoal && GOALS.includes(newGoal)) {
+          setProfile(p => ({ ...p, goal: newGoal }));
+          setCH(h => [...h, { role: "assistant", content: `✅ Goal updated to **${newGoal}**! Your macros and plan should be regenerated to match. Want me to do that now?`, chips: ["Yes, regenerate my plan", "Just update macros", "Keep my current plan"] }]);
+        } else {
+          setCH(h => [...h, { role: "assistant", content: `I can update your goal to one of these:\n\n${GOALS.map(g => `- **${g}**`).join("\n")}\n\nWhich would you like?`, chips: GOALS }]);
+        }
+        return;
+      }
+
+      case "SNACK_IDEAS": {
+        const snacks = await callClaude([{ role: "user", content: `Give 4 quick snack ideas for ${eth()?.label} heritage, diet: ${dietInfo()?.label}, goal: ${profile.goal}. Each with name, calories, and one sentence why it fits the goal. Keep it concise and culturally relevant.` }], buildSystem(), false, 1000);
+        setCH(h => [...h, { role: "assistant", content: snacks.trim(), chips: ["Add snacks to my plan", "Higher protein snacks", "Budget-friendly snacks", "Quick prep snacks"] }]);
+        return;
+      }
+
+      case "NAVIGATE_TAB": {
+        const t = params?.tab || "plan";
+        setTab(t);
+        const labels = { plan: "Plan 🍽️", macros: "Macros 📊", deals: "Deals 🛒", grocery: "Grocery List 📋", compliance: "Privacy 🔒" };
+        setCH(h => [...h, { role: "assistant", content: `Switched to the **${labels[t] || t}** tab!`, chips: t === "plan" ? ["Swap a meal", "Explain my macros", "Find deals"] : ["Go to Plan tab", "Find deals", "Swap a meal"] }]);
+        return;
+      }
+
+      case "GENERAL": {
+        const apiHist = [...chatHistory.map(msg => ({ role: msg.role, content: msg.content })), { role: "user", content: originalText }];
+        const reply = await callClaude(apiHist, buildSystem() + "\n\nYou are an active AI coach — you take actions, not just give advice. If the user wants a plan change, dietary change, or meal swap, confirm you can do it and ask for details if needed. Never say 'contact support' — you ARE the support.", false, 1000);
+        setCH(h => [...h, { role: "assistant", content: reply.trim(), chips: ["Swap a meal", "Change my diet", "Regenerate plan", "Find deals"] }]);
+        return;
+      }
+
+      default: break;
+    }
+  }, [macros, profile, mealPlan, deals, chatHistory, fetchDeals]);
+
   const sendChat = useCallback(async (text) => {
     if (!text.trim() || chatLoading) return;
+
+    // Safety screen first
     const screen = Safety.screenMessage(text);
     Compliance.auditLog("chat_message", `type:${screen.type}`);
-    if (screen.block) { setCH(h => [...h, { role: "user", content: text }, { role: "assistant", content: "🚨 This sounds like a medical emergency. Please call 911 immediately.", type: "emergency" }]); return; }
-    const apiHist = [...chatHistory.map(m => ({ role: m.role, content: m.content })), { role: "user", content: text.trim() }];
-    setCH(h => [...h, { role: "user", content: text.trim() }]); setChatInput(""); setCL(true);
+    if (screen.block) {
+      setCH(h => [...h, { role: "user", content: text }, { role: "assistant", content: "🚨 This sounds like a medical emergency. Please call 911 immediately.", type: "emergency" }]);
+      return;
+    }
+    if (screen.type === "ed_risk") {
+      setCH(h => [...h, { role: "user", content: text }, { role: "assistant", content: "💛 I hear you. Please reach out to the NEDA Helpline: **1-800-931-2237** or text **\"NEDA\" to 741741**. You deserve support.", type: "ed_risk" }]);
+      return;
+    }
 
-    let sysAdd = "Keep responses concise. Use ## for headers, **bold**, - for bullets. Don't write full meal plans in chat — direct to Plan tab.";
-    if (screen.type === "diagnosis") sysAdd += " Decline diagnosis requests, redirect to physician.";
-    if (screen.type === "ed_risk") sysAdd += " Respond with compassion, provide NEDA helpline.";
-    if (screen.type === "minor_mention") sysAdd += " Redirect to pediatric dietitian.";
+    setCH(h => [...h, { role: "user", content: text.trim() }]);
+    setChatInput("");
+    setCL(true);
 
-    const lower = text.toLowerCase(); let reply = ""; let chips = ["Tell me more", "Adjust my plan", "Recipe ideas", "Shopping tips"];
+    // ── Intent classifier ─────────────────────────────────────────────────────
+    // Ask Claude to classify what the user wants, with full app context
+    const appState = `Current app state: meal plan loaded=${!!mealPlan}, days=${mealPlan?.length || 0}, diet=${dietInfo()?.label}, goal=${profile.goal}, heritage=${eth()?.label}, macros loaded=${!!macros}.`;
+    const intentResult = await callJSON([{ role: "user", content: `${appState}\n\nUser message: "${text}"\n\nClassify the intent and return ONLY JSON:\n{"action":"REGENERATE_PLAN"|"SWAP_MEAL"|"EXPLAIN_MACROS"|"FIND_DEALS"|"RECIPE_DETAIL"|"GOAL_CHANGE"|"SNACK_IDEAS"|"NAVIGATE_TAB"|"GENERAL","params":{"days":number|null,"diet":"non-vegetarian"|"vegetarian"|"vegan"|"pescatarian"|"keto"|"halal"|"jain"|"gluten-free"|null,"meal":"breakfast"|"lunch"|"dinner"|"snack"|null,"goal":string|null,"tab":"plan"|"macros"|"deals"|"grocery"|null}}\n\nRules:\n- REGENERATE_PLAN: user wants a new/different meal plan (different days, diet, goal, or just "redo")\n- SWAP_MEAL: user wants to swap or replace one meal\n- EXPLAIN_MACROS: user asks about macros, calories, protein, carbs, fat\n- FIND_DEALS: user wants grocery deals or shopping help\n- RECIPE_DETAIL: user wants a recipe or cooking instructions\n- GOAL_CHANGE: user wants to change their fitness goal\n- SNACK_IDEAS: user wants snack suggestions\n- NAVIGATE_TAB: user wants to see a specific tab\n- GENERAL: anything else` }], "", 300);
 
-    if (lower.includes("daily plan") || lower.includes("full plan") || lower.includes("meal plan") || lower.includes("each meal") || lower.includes("all meals")) {
-      reply = `Your full meal plan is on the **🍽️ Plan tab** above!\n\nEach meal — breakfast, lunch, dinner, and snack — is laid out with calories and ingredients. Tap any meal card to expand it.\n\nWant me to **swap a specific meal** or explain your **macros** instead?`;
-      chips = ["Swap a meal", "Explain my macros", "Snack ideas", "Find deals near me"];
-    } else if ((lower.includes("swap") || lower.includes("replace")) && mealPlan) {
-      const sw = await callJSON([{ role: "user", content: `User: "${text}". ${eth()?.label} plan, goal: ${profile.goal}. 1 culturally-appropriate swap. JSON: {"original":string,"name":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string],"reason":string}` }], buildSystem() + "\n" + sysAdd);
-      reply = sw ? `Great swap!\n\n🔄 **Replace:** ${sw.original}\n✅ **With:** ${sw.name}\n\n${sw.reason}\n\n**Macros:** ${sw.cals} cal · ${sw.protein}g P · ${sw.carbs}g C\n**Ingredients:** ${sw.ingredients?.join(", ")}\n\n⚕️ Verify with a dietitian.` : await callClaude(apiHist, buildSystem() + "\n" + sysAdd);
-      chips = ["Another swap", "Vegetarian option", "Show grocery list"];
-    } else if ((lower.includes("deal") || lower.includes("shop") || lower.includes("buy")) && deals.length === 0) {
-      await fetchDeals(); reply = `Searching for deals near you now! 🛒 Check the **Deals section** on the Plan tab for live grocery prices.`;
-      chips = ["Best deal?", "Bulk buying tips", "Ethnic stores near me"];
-    } else { reply = await callClaude(apiHist, buildSystem() + "\n" + sysAdd); }
+    const action = intentResult?.action || "GENERAL";
+    const params = intentResult?.params || {};
 
-    setCH(h => [...h, { role: "assistant", content: reply.trim(), chips, type: screen.type !== "safe" ? screen.type : undefined }]); setCL(false);
-  }, [chatHistory, chatLoading, mealPlan, deals, profile, macros, fetchDeals]);
+    setCL(false);
+    await executeAction(action, params, text.trim());
+  }, [chatHistory, chatLoading, mealPlan, deals, profile, macros, fetchDeals, executeAction]);
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatHistory, chatLoading]);
   const dayTotals = d => d ? Object.values(d.meals).reduce((a, m) => ({ cals: a.cals + (m.cals || 0), protein: a.protein + (m.protein || 0), carbs: a.carbs + (m.carbs || 0), fat: a.fat + (m.fat || 0) }), { cals: 0, protein: 0, carbs: 0, fat: 0 }) : {};
@@ -1050,6 +1170,37 @@ export default function FuelPlanPro() {
               <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(245,240,232,.3)", marginBottom: 10 }}>Primary Goal</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {GOALS.map(g => <Pill key={g} active={profile.goal === g} onClick={() => setProfile(p => ({ ...p, goal: g }))} color={WARM2}>{g}</Pill>)}
+              </div>
+            </div>
+
+            {/* Dietary Preference */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "rgba(245,240,232,.3)", marginBottom: 10 }}>Dietary Preference</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {DIETARY_TYPES.map(d => {
+                  const isSelected = (profile.diet || "non-vegetarian") === d.id;
+                  return (
+                    <button key={d.id} onClick={() => setProfile(p => ({ ...p, diet: d.id }))}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 10,
+                        padding: "11px 14px", borderRadius: 14, cursor: "pointer",
+                        border: `1.5px solid ${isSelected ? SAGE : "rgba(255,255,255,.08)"}`,
+                        background: isSelected ? `${SAGE}12` : "rgba(255,255,255,.03)",
+                        boxShadow: isSelected ? `0 0 18px ${SAGE}20` : "none",
+                        transition: "all .25s cubic-bezier(.22,1,.36,1)",
+                        textAlign: "left",
+                      }}>
+                      <span style={{ fontSize: 18, flexShrink: 0 }}>{d.emoji}</span>
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: isSelected ? SAGE : CREAM }}>{d.label}</div>
+                        <div style={{ fontSize: 10, color: "rgba(245,240,232,.3)", marginTop: 1 }}>{d.desc}</div>
+                      </div>
+                      {isSelected && (
+                        <div style={{ marginLeft: "auto", width: 16, height: 16, borderRadius: "50%", background: `linear-gradient(135deg, ${SAGE}, #4caf50)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 900, color: DARK, flexShrink: 0 }}>✓</div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -1518,9 +1669,12 @@ export default function FuelPlanPro() {
               {/* Messages */}
               <div style={{ flex: 1, overflowY: "auto", padding: "14px 12px 8px", display: "flex", flexDirection: "column" }}>
                 {chatHistory.length === 0 && !chatLoading && (
-                  <div style={{ textAlign: "center", color: "rgba(245,240,232,.25)", fontSize: 13, margin: "auto" }}>
+                  <div style={{ textAlign: "center", color: "rgba(245,240,232,.25)", fontSize: 12, margin: "auto", padding: "0 10px" }}>
                     <div style={{ fontSize: 32, marginBottom: 10 }}>⚡</div>
-                    Ask about your plan, meals, macros, or deals!
+                    <div style={{ fontWeight: 700, color: "rgba(245,240,232,.4)", marginBottom: 8, fontSize: 13 }}>FuelCoach can:</div>
+                    {["🔄 Swap any meal instantly", "📅 Build 3 or 7-day plans", "🌱 Switch your diet type", "🛒 Find grocery deals", "📖 Give you full recipes", "📊 Break down your macros"].map(s => (
+                      <div key={s} style={{ marginBottom: 4 }}>{s}</div>
+                    ))}
                   </div>
                 )}
                 {chatHistory.map((msg, i) => <ChatBubble key={i} msg={msg} onChip={text => sendChat(text)} />)}
@@ -1538,7 +1692,7 @@ export default function FuelPlanPro() {
               {/* Quick chips */}
               {chatHistory.length <= 1 && !chatLoading && (
                 <div style={{ padding: "0 12px 8px", display: "flex", gap: 6, overflowX: "auto" }}>
-                  {["Swap a dinner", "Best snack ideas", "Explain my macros", "Find deals", "Vegetarian options"].map(s => (
+                  {["Swap my dinner 🔄", "7-day plan 📅", "Go vegan 🌱", "Find deals 🛒", "Snack ideas 🍎", "Explain my macros 📊"].map(s => (
                     <button key={s} onClick={() => sendChat(s)} style={{ flexShrink: 0, padding: "6px 14px", borderRadius: 20, border: `1px solid rgba(255,255,255,.1)`, background: "transparent", color: "rgba(245,240,232,.4)", fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>{s}</button>
                   ))}
                 </div>
