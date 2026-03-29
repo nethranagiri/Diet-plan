@@ -26,7 +26,8 @@ export default async function handler(req, res) {
     body.model = 'claude-sonnet-4-20250514';
 
     // Safety: cap max_tokens to prevent abuse
-    body.max_tokens = Math.min(body.max_tokens || 1000, 2000);
+    // 4000 needed for full 3-day meal plan JSON; keep 2000 for chat
+    body.max_tokens = Math.min(body.max_tokens || 1000, 4000);
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

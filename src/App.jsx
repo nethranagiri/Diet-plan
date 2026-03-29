@@ -202,10 +202,10 @@ const Privacy = {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // SECURE CLAUDE API — Calls /api/claude proxy (API key stays server-side)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const callClaude = async (messages, extraSystem = "", useSearch = false) => {
+const callClaude = async (messages, extraSystem = "", useSearch = false, maxTokens = 1000) => {
   const body = {
     model: "claude-sonnet-4-20250514",
-    max_tokens: 1000,
+    max_tokens: maxTokens,
     system: Safety.SYSTEM_PREAMBLE + (extraSystem ? "\n\n" + extraSystem : ""),
     messages,
     ...(useSearch ? { tools: [{ type: "web_search_20250305", name: "web_search" }] } : {}),
@@ -221,8 +221,8 @@ const callClaude = async (messages, extraSystem = "", useSearch = false) => {
   return data.content?.map(b => b.text || "").filter(Boolean).join("\n") || "";
 };
 
-const callJSON = async (messages, extraSystem = "") => {
-  const t = await callClaude(messages, extraSystem);
+const callJSON = async (messages, extraSystem = "", maxTokens = 1000) => {
+  const t = await callClaude(messages, extraSystem, false, maxTokens);
   try { const m = t.replace(/```json|```/g, "").trim().match(/\{[\s\S]*\}|\[[\s\S]*\]/); return m ? JSON.parse(m[0]) : null; } catch { return null; }
 };
 
@@ -782,7 +782,7 @@ export default function FuelPlanPro() {
       const saved = Privacy.load();
       const m = Privacy.loadData("fp_macros");
       const pl = Privacy.loadData("fp_mealplan");
-      // Only go to plan if ALL data exists and is valid
+      // Only restore to plan if ALL required data exists and is valid
       if (
         saved && m && pl &&
         Array.isArray(pl) && pl.length > 0 &&
@@ -797,13 +797,11 @@ export default function FuelPlanPro() {
         setGrocery([...ings]);
         setStep("plan");
       } else {
-        // Clear any partial data and go to profile
-        localStorage.removeItem("fp_mealplan");
-        localStorage.removeItem("fp_macros");
+        // Missing or partial data — stay on profile, do NOT wipe existing localStorage
+        // (data might be valid but incomplete due to a previous partial save)
         setStep("profile");
       }
     } catch(e) {
-      // Any error — reset to profile
       setStep("profile");
     }
   }, []);
@@ -865,7 +863,7 @@ export default function FuelPlanPro() {
     const m = macroData?.macros || macros; if (!m) return;
     setLoading(l => ({ ...l, plan: true }));
     Compliance.auditLog("plan_generated", `heritage:${profile.ethnicity},goal:${profile.goal}`);
-    const data = await callJSON([{ role: "user", content: `3-day ${profile.goal} meal plan for ${eth()?.label} heritage. Macros/day: ${m.calories}cal, ${m.protein_g}g P, ${m.carbs_g}g C, ${m.fat_g}g F. Staples: ${eth()?.staples?.join(", ")}. Return JSON: {"days":[{"day":"Monday","meals":{"breakfast":{"name":string,"description":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string]},"lunch":same,"dinner":same,"snack":same}}]} for 3 days.` }], `World-class ${eth()?.label} cuisine nutritionist. Return ONLY valid JSON.`);
+    const data = await callJSON([{ role: "user", content: `3-day ${profile.goal} meal plan for ${eth()?.label} heritage. Macros/day: ${m.calories}cal, ${m.protein_g}g P, ${m.carbs_g}g C, ${m.fat_g}g F. Staples: ${eth()?.staples?.join(", ")}. Return JSON: {"days":[{"day":"Monday","meals":{"breakfast":{"name":string,"description":string,"cals":number,"protein":number,"carbs":number,"fat":number,"ingredients":[string]},"lunch":same,"dinner":same,"snack":same}}]} for 3 days.` }], `World-class ${eth()?.label} cuisine nutritionist. Return ONLY valid JSON.`, 4000);
     if (data?.days) {
       setMealPlan(data.days); Privacy.saveData("fp_mealplan", data.days);
       const ings = new Set(); data.days.forEach(d => Object.values(d.meals).forEach(meal => meal.ingredients?.forEach(i => ings.add(i)))); setGrocery([...ings]);
@@ -898,7 +896,9 @@ export default function FuelPlanPro() {
   const startPlan = async () => {
     Privacy.save(profile);
     Compliance.auditLog("plan_started", `goal:${profile.goal},heritage:${profile.ethnicity}`);
+    // Show plan step immediately so spinner renders, but BEFORE data is ready
     setStep("plan"); setTab("plan");
+    setLoading(l => ({ ...l, plan: true, macros: true }));
     const data = await analyzeMacros();
     await generatePlan(data);
     const greeting = await callClaude([{ role: "user", content: `Warm 2-sentence welcome for new ${eth()?.label} ${profile.goal} plan. Mention one cultural staple. Under 35 words.` }], buildSystem());
